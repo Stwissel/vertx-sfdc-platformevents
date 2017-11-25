@@ -21,9 +21,7 @@
  */
 package net.wissel.salesforce.vertx.config;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -33,7 +31,7 @@ import java.util.Set;
  * @author stw
  *
  */
-public class ListenerConfig {
+public class ListenerConfig extends BaseConfig {
 
 	/**
 	 * How will incoming data be processes SEND: to one receiving Verticle
@@ -52,12 +50,6 @@ public class ListenerConfig {
 	private String authName;
 
 	/**
-	 * Class that implements that listener, mostly the same for all
-	 *
-	 */
-	private String verticleName;
-
-	/**
 	 * The subscription topic to use
 	 */
 	private String listenSubject;
@@ -72,24 +64,8 @@ public class ListenerConfig {
 	 */
 	private ForwardAs forwardAs = ForwardAs.SEND;
 
-	/**
-	 * Shall the loader start the verticle after deployment
-	 */
-	private boolean autoStart = true;
-
-	/**
-	 * Is the verticle allow to listen/act?
-	 */
-	private boolean enabled = true;
-
-	/**
-	 * Other parameters
-	 */
-	private Map<String, String> parameters = new HashMap<String, String>();
-
 	public void addEventBusAddress(final String address) {
 		this.eventBusAddresses.add(address);
-
 	}
 
 	/**
@@ -121,31 +97,12 @@ public class ListenerConfig {
 	}
 
 	/**
-	 * @return the parameters
+	 * @see net.wissel.salesforce.vertx.config.BaseConfig#getVerticleInstanceCount()
 	 */
-	public final Map<String, String> getParameters() {
-		return this.parameters;
-	}
-
-	/**
-	 * @return the verticleName
-	 */
-	public final String getVerticleName() {
-		return this.verticleName;
-	}
-
-	/**
-	 * @return the autoStart
-	 */
-	public final boolean isAutoStart() {
-		return this.autoStart;
-	}
-
-	/**
-	 * @return the enabled
-	 */
-	public final boolean isEnabled() {
-		return this.enabled;
+	@Override
+	public int getVerticleInstanceCount() {
+		// There only can be one listener or we get double eventa
+		return 1;
 	}
 
 	/**
@@ -154,22 +111,6 @@ public class ListenerConfig {
 	 */
 	public final void setAuthName(final String authName) {
 		this.authName = authName;
-	}
-
-	/**
-	 * @param autoStart
-	 *            the autoStart to set
-	 */
-	public final void setAutoStart(final boolean autoStart) {
-		this.autoStart = autoStart;
-	}
-
-	/**
-	 * @param enabled
-	 *            the enabled to set
-	 */
-	public final void setEnabled(final boolean enabled) {
-		this.enabled = enabled;
 	}
 
 	/**
@@ -194,22 +135,6 @@ public class ListenerConfig {
 	 */
 	public final void setListenSubject(final String listenSubject) {
 		this.listenSubject = listenSubject;
-	}
-
-	/**
-	 * @param parameters
-	 *            the parameters to set
-	 */
-	public final void setParameters(final Map<String, String> parameters) {
-		this.parameters = parameters;
-	}
-
-	/**
-	 * @param verticleName
-	 *            the verticleName to set
-	 */
-	public final void setVerticleName(final String verticleName) {
-		this.verticleName = verticleName;
 	}
 
 }

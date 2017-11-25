@@ -21,143 +21,97 @@
  */
 package net.wissel.salesforce.vertx.config;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * Stores configuration options for an authorization provider
- * The authentication provider provides the value of the
- * Authorization string typically added to the HTTP header for
- * proper access to protected resources
- * 
+ * Stores configuration options for an authorization provider The authentication
+ * provider provides the value of the Authorization string typically added to
+ * the HTTP header for proper access to protected resources
+ *
  * @author stw
  *
  */
-public class AuthConfig {
-	
+public class AuthConfig extends BaseConfig {
+
 	/**
-	 * Unique name to identify the configuration
-	 * It's possible to have multiple AuthConfig
-	 * pointing to the same server for different
-	 * authorization. Forms part of its EventBus address
+	 * Unique name to identify the configuration It's possible to have multiple
+	 * AuthConfig pointing to the same server for different authorization. Forms
+	 * part of its EventBus address
 	 */
 	private String authName;
-	
+
 	/**
-	 * Name / Class of the verticle providing the service
-	 */
-	private String verticleName;
-	
-	/**
-	 * URL pointing to the authentication destination
-	 * Special case: URL could be "PRODUCTION" or "SANDBOX"
-	 * as shortcut for the Salesforce URLs
+	 * URL pointing to the authentication destination Special case: URL could be
+	 * "PRODUCTION" or "SANDBOX" as shortcut for the Salesforce URLs
 	 */
 	private String serverURL;
-	
+
 	/**
-	 * Username, typically supplied by env_variable
-	 * Variable is[authName]_userName
+	 * Username, typically supplied by env_variable Variable
+	 * is[authName]_userName
 	 */
 	private String userName = null;
-	
+
 	/**
 	 * Password, typically supplied by env_variable
 	 */
 	private String passWord = null;
-		
-	/** 
-	 * Other parameters like sessions, consumer secrets etc.
-	 * for various types of auth module
-	 */
-	private Map<String, String> parameters = new HashMap<String, String>();
-
-	/**
-	 * @param parameters the parameters to set
-	 */
-	public final void setParameters(Map<String, String> parameters) {
-		this.parameters = parameters;
-	}
 
 	/**
 	 * @return the authName
 	 */
 	public final String getAuthName() {
-		return authName;
-	}
-
-	/**
-	 * @param authName the authName to set
-	 */
-	public final void setAuthName(String authName) {
-		this.authName = authName;
-	}
-
-	/**
-	 * @return the verticleName
-	 */
-	public final String getVerticleName() {
-		return verticleName;
-	}
-
-	/**
-	 * @param verticleName the verticleName to set
-	 */
-	public final void setVerticleName(String verticleName) {
-		this.verticleName = verticleName;
-	}
-
-	/**
-	 * @return the serverURL
-	 */
-	public final String getServerURL() {
-		return serverURL;
-	}
-
-	/**
-	 * @param serverURL the serverURL to set
-	 */
-	public final void setServerURL(String serverURL) {
-		this.serverURL = serverURL;
-	}
-
-	/**
-	 * @return the userName
-	 */
-	public final String getUserName() {
-		return userName;
-	}
-
-	/**
-	 * @param userName the userName to set
-	 */
-	public final void setUserName(String userName) {
-		this.userName = userName;
+		return this.authName;
 	}
 
 	/**
 	 * @return the passWord
 	 */
 	public final String getPassWord() {
-		return passWord;
+		return this.passWord;
 	}
 
 	/**
-	 * @param passWord the passWord to set
+	 * @return the serverURL
 	 */
-	public final void setPassWord(String passWord) {
+	public final String getServerURL() {
+		return this.serverURL;
+	}
+
+	/**
+	 * @return the userName
+	 */
+	public final String getUserName() {
+		return this.userName;
+	}
+
+	/**
+	 * @param authName
+	 *            the authName to set
+	 */
+	public final void setAuthName(final String authName) {
+		this.authName = authName;
+	}
+
+	/**
+	 * @param passWord
+	 *            the passWord to set
+	 */
+	public final void setPassWord(final String passWord) {
 		this.passWord = passWord;
 	}
 
 	/**
-	 * @return the parameters
+	 * @param serverURL
+	 *            the serverURL to set
 	 */
-	public final Map<String, String> getParameters() {
-		return parameters;
+	public final void setServerURL(final String serverURL) {
+		this.serverURL = serverURL;
 	}
 
-	public void addParameter(String key, String value) {
-		this.parameters.put(key, value);		
+	/**
+	 * @param userName
+	 *            the userName to set
+	 */
+	public final void setUserName(final String userName) {
+		this.userName = userName;
 	}
-	
 }

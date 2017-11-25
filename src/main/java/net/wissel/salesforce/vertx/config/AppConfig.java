@@ -40,7 +40,7 @@ public class AppConfig {
 	public final Map<String, AuthConfig> authConfigurations = new HashMap<String, AuthConfig>();
 	public final Collection<ListenerConfig> listenerConfigurations = new ArrayList<ListenerConfig>();
 	public final Collection<ConsumerConfig> consumerConfigurations = new ArrayList<ConsumerConfig>();
-	public final Map<String, Map<String, String>> verticlesToLoad = new HashMap<String, Map<String, String>>();
+	public final Map<String, Map<String, Object>> verticlesToLoad = new HashMap<String, Map<String, Object>>();
 	public final Map<String, String> parameters = new HashMap<String, String>();
 	public int port = 8044; // Our WebServer Port
 
@@ -61,7 +61,7 @@ public class AppConfig {
 		this.parameters.put(key, value);
 	}
 
-	public final void addVerticleConfig(final String vName, final Map<String, String> params) {
+	public final void addVerticleConfig(final String vName, final Map<String, Object> params) {
 		this.verticlesToLoad.put(vName, params);
 	}
 
