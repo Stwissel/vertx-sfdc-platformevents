@@ -28,15 +28,9 @@
     ],
     "consumerConfigurations": [
         {
-            "verticleName": "net.wissel.salesforce.vertx.consumer.LogConsumer",
+            "verticleName": "net.wissel.salesforce.vertx.consumer.WebSocketConsumer",
             "eventBusAddress": "SFDC.SampleEvents",
             "providesRouterExtension": true,
-            "verticleInstanceCount": 1,
-            "deployAsWorker": true
-        },
-        {
-            "verticleName": "net.wissel.salesforce.vertx.consumer.webSocketConsumer",
-            "eventBusAddress": "SFDC.SampleEvents",
             "deployAsWorker": false,
             "autoStart": false
         }

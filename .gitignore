@@ -12,6 +12,6 @@ buildNumber.properties
 .classpath
 .settings
 # Contains setup parameter
-sfdcoptions.json
+SFDCOptions.json
 # Verx cache
 .vertx
