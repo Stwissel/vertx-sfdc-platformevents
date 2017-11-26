@@ -108,14 +108,6 @@ public class ApplicationStarter extends AbstractVerticle {
 
 	}
 
-	/**
-	 * @see io.vertx.core.AbstractVerticle#stop(io.vertx.core.Future)
-	 */
-	@Override
-	public void stop(final Future<Void> stopFuture) throws Exception {
-		stopFuture.complete();
-	}
-
 	private void addParametersFromEnvironment(final JsonObject configCandidate) {
 		// We need the PORT for our http listener once
 		String portCandidate = System.getenv(Constants.CONFIG_PORT);
@@ -337,8 +329,8 @@ public class ApplicationStarter extends AbstractVerticle {
 		this.logger.info("Shutting down listeners, can take a while....");
 		DeliveryOptions delOpt = new DeliveryOptions();
 		// The shutdown might be mightly delayed
-		// Due to the nature of cometD, so we wait 30 seconds
-		delOpt.setSendTimeout(30000);
+		// Due to the nature of cometD, so we wait up to 120 seconds
+		delOpt.setSendTimeout(120000);
 		// Make the listeners stop listening
 		for (final ListenerConfig lc : this.appConfig.listenerConfigurations) {
 			final Future<Void> curFuture = Future.future();
