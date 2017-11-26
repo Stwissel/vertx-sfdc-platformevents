@@ -65,6 +65,16 @@ public class BaseConfig {
 	private boolean providesRouterExtension = false;
 
 	/**
+	 * Name or IP address of an eventual proxy server to use
+	 */
+	private String proxy = null;
+
+	/**
+	 * Port for an eventual proxy server to use
+	 */
+	private int proxyPort = 0;
+
+	/**
 	 * Other parameters
 	 */
 	private Map<String, String> parameters = new HashMap<String, String>();
@@ -78,6 +88,20 @@ public class BaseConfig {
 	 */
 	public Map<String, String> getParameters() {
 		return this.parameters;
+	}
+
+	/**
+	 * @return the proxy
+	 */
+	public final String getProxy() {
+		return this.proxy;
+	}
+
+	/**
+	 * @return the proxyPort
+	 */
+	public final int getProxyPort() {
+		return this.proxyPort;
 	}
 
 	/**
@@ -160,6 +184,22 @@ public class BaseConfig {
 	 */
 	public final void setProvidesRouterExtension(final boolean providesRouterExtension) {
 		this.providesRouterExtension = providesRouterExtension;
+	}
+
+	/**
+	 * @param proxy
+	 *            the proxy to set
+	 */
+	public final void setProxy(final String proxy) {
+		this.proxy = proxy;
+	}
+
+	/**
+	 * @param proxyPort
+	 *            the proxyPort to set
+	 */
+	public final void setProxyPort(final int proxyPort) {
+		this.proxyPort = proxyPort;
 	}
 
 	/**

@@ -52,11 +52,17 @@ public class Runner {
 		};
 
 		final VertxOptions options = new VertxOptions();
-		if (debugMode) {
+		if (Runner.isDebug(debugMode)) {
 			options.setBlockedThreadCheckInterval(1000 * 60 * 60);
 		}
 
 		final Vertx vertx = Vertx.vertx(options);
 		runner.accept(vertx);
+	}
+
+	private static boolean isDebug(boolean debugMode) {
+		// Debug was given as parameter or there's an environment variable
+		// set to true so we go debugging
+		return debugMode || Boolean.parseBoolean(System.getenv("Debug"));
 	}
 }

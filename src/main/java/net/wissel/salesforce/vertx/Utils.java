@@ -24,12 +24,12 @@ package net.wissel.salesforce.vertx;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-
 /**
  * @author swissel
  *
  */
 public class Utils {
+
 	/**
 	 * Standard way to deal with date
 	 *

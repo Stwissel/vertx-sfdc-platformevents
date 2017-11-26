@@ -14,5 +14,11 @@ public interface Constants {
 	String API_ROOT = "/api";
 	String CONTENT_HEADER = "Content-Type";
 	String CONTENT_TYPE_JSON = "application/json";
+	String MESSAGE_ISSTARTUP = "StartupMessage";
+	// Silly, but Message headers only take Strings
+	String TRUESTRING = "True";
+	String CONFIG_AUTOSTART = "autoStart";
+	String CONFIG_PORT = "Port";
+	String CONFIG_AUTHNAME = "authName";
 	
 }

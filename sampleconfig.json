@@ -1,6 +1,6 @@
 {
-    "authConfigurations": {
-        "default": {
+    "authConfigurations": [
+        {
             "authName": "default",
             "verticleName": "net.wissel.salesforce.vertx.auth.SoapApi",
             "serverURL": "login.salesforce.com",
@@ -8,7 +8,7 @@
             "passWord": "pwd",
             "parameters": { "key": "value" }
         }
-    },
+    ],
     "listenerConfigurations": [
         {
             "authName": "default",

@@ -37,7 +37,7 @@ import java.util.Map;
  */
 public class AppConfig {
 
-	public final Map<String, AuthConfig> authConfigurations = new HashMap<String, AuthConfig>();
+	public final Collection<AuthConfig> authConfigurations = new ArrayList<AuthConfig>();
 	public final Collection<ListenerConfig> listenerConfigurations = new ArrayList<ListenerConfig>();
 	public final Collection<ConsumerConfig> consumerConfigurations = new ArrayList<ConsumerConfig>();
 	public final Map<String, Map<String, Object>> verticlesToLoad = new HashMap<String, Map<String, Object>>();
@@ -46,7 +46,7 @@ public class AppConfig {
 
 	/* Convenience methods */
 	public final void addAuthConfig(final AuthConfig authConf) {
-		this.authConfigurations.put(authConf.getAuthName(), authConf);
+		this.authConfigurations.add(authConf);
 	}
 
 	public final void addConsumerConfig(final ConsumerConfig consConf) {

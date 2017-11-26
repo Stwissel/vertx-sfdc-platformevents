@@ -22,6 +22,7 @@
 package net.wissel.salesforce.vertx;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Verticle;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.ReplyException;
 import io.vertx.core.eventbus.ReplyFailure;
@@ -114,9 +116,43 @@ public class ApplicationStarter extends AbstractVerticle {
 		stopFuture.complete();
 	}
 
-	private void addParametersFromEnvironment(final AppConfig appConfig2) {
-		// TODO Auto-generated method stub
+	private void addParametersFromEnvironment(final JsonObject configCandidate) {
+		// We need the PORT for our http listener once
+		String portCandidate = System.getenv(Constants.CONFIG_PORT);
+		if (portCandidate != null) {
+			try {
+				configCandidate.put(Constants.CONFIG_PORT, Integer.parseInt(portCandidate));
+			} catch (Exception e) {
+				this.logger.fatal(e);
+			}
+		}
 
+		// and parameters with prefix for each listener / consumer entry
+		List<String> configNames = Arrays.asList("listenerConfigurations", "consumerConfigurations",
+				"authConfigurations");
+		List<String> envNames = Arrays.asList("Proxy", "ProxyPort", "SFDCUser", "SFDCPassword");
+		for (String cName : configNames) {
+			try {
+				JsonArray cArray = configCandidate.getJsonArray(cName);
+				if (cArray != null) {
+					cArray.forEach(oneConf -> {
+						JsonObject c = (JsonObject) oneConf;
+						String prefix = c.getString(Constants.CONFIG_AUTHNAME);
+						if (prefix != null) {
+							envNames.forEach(key -> {
+								String candidate = System.getenv(prefix + "_" + key);
+								if (candidate != null) {
+									c.put(key, candidate);
+								}
+							});
+						}
+					});
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				this.logger.fatal(e);
+			}
+		}
 	}
 
 	/**
@@ -152,9 +188,9 @@ public class ApplicationStarter extends AbstractVerticle {
 			} else {
 				final JsonObject payload = ar.result();
 				try {
+					this.addParametersFromEnvironment(payload);
 					this.appConfig = payload.mapTo(AppConfig.class);
-					this.addParametersFromEnvironment(this.appConfig);
-					this.loadedVerticles(verticleLoad);
+					this.loadVerticles(verticleLoad);
 				} catch (final Throwable t) {
 					verticleLoad.fail(t);
 					return;
@@ -172,12 +208,12 @@ public class ApplicationStarter extends AbstractVerticle {
 		return this.config().getString(Constants.OPTION_FILE_NAME, Constants.OPTION_FILE_NAME);
 	}
 
-	private void loadedVerticles(final Future<Void> verticleLoad) {
+	private void loadVerticles(final Future<Void> verticleLoad) {
 		@SuppressWarnings("rawtypes")
 		final List<Future> allLoadedVerticles = new ArrayList<Future>();
 
 		// Authorizers
-		for (final AuthConfig ac : this.appConfig.authConfigurations.values()) {
+		for (final AuthConfig ac : this.appConfig.authConfigurations) {
 			allLoadedVerticles.add(this.loadVerticle(ac.getVerticleName(), this.getDeploymentOptions(ac)));
 		}
 
@@ -207,7 +243,9 @@ public class ApplicationStarter extends AbstractVerticle {
 		// Signal start
 		CompositeFuture.all(allLoadedVerticles).setHandler(allLoaded -> {
 			if (allLoaded.succeeded()) {
-				this.getVertx().eventBus().publish(Constants.BUS_START_STOP, Constants.MESSAGE_START);
+				DeliveryOptions delOps = new DeliveryOptions().addHeader(Constants.MESSAGE_ISSTARTUP,
+						Constants.TRUESTRING);
+				this.getVertx().eventBus().publish(Constants.BUS_START_STOP, Constants.MESSAGE_START, delOps);
 				verticleLoad.complete();
 			} else {
 				verticleLoad.fail(allLoaded.cause());
@@ -347,7 +385,8 @@ public class ApplicationStarter extends AbstractVerticle {
 	private void startWebServer(final Future<Void> startFuture) {
 
 		// Sanitize the parameters and capture cookies / headers
-		// TODO: this.router.route().handler(RequestSanitizer.create(this.vertx));
+		// TODO:
+		// this.router.route().handler(RequestSanitizer.create(this.vertx));
 
 		final String apiRoute = this.config().getString(Constants.API_ROOT, Constants.API_ROOT);
 
@@ -422,7 +461,7 @@ public class ApplicationStarter extends AbstractVerticle {
 						this.logger.fatal(handler.cause());
 					}
 					System.exit(0);
-				});			
+				});
 			});
 			this.shutDownVerticles(shutdownFuture);
 		} catch (Exception e) {
