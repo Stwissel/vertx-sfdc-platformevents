@@ -22,10 +22,14 @@
 package net.wissel.salesforce.vertx;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.joda.time.Period;
+import org.joda.time.format.PeriodFormat;
 
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
@@ -36,10 +40,18 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Verticle;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.ReplyException;
+import io.vertx.core.eventbus.ReplyFailure;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.StaticHandler;
 import net.wissel.salesforce.vertx.config.AppConfig;
 import net.wissel.salesforce.vertx.config.AuthConfig;
 import net.wissel.salesforce.vertx.config.BaseConfig;
@@ -67,10 +79,9 @@ public class ApplicationStarter extends AbstractVerticle {
 	}
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
-	private final Collection<String> loadedVerticles = new ArrayList<String>();
+	private final List<String> loadedVerticles = new ArrayList<String>();
 	private AppConfig appConfig = null;
 	private Router router = null;
-	int port = 8443;
 	private final Date startDate = new Date();
 
 	/**
@@ -332,12 +343,103 @@ public class ApplicationStarter extends AbstractVerticle {
 
 	}
 
+	/* Loading of the WEB UI to provide a minimal Admin GUI to watch */
 	private void startWebServer(final Future<Void> startFuture) {
-		// TODO Implement the web server here
 
-		this.logger.info("System started " + Utils.getDateString(this.startDate));
+		// Sanitize the parameters and capture cookies / headers
+		// TODO: this.router.route().handler(RequestSanitizer.create(this.vertx));
+
+		final String apiRoute = this.config().getString(Constants.API_ROOT, Constants.API_ROOT);
+
+		// API route
+		this.router.route(apiRoute).handler(this::rootHandler);
+
+		// API Routes
+		this.setupRouteSecurity(this.router);
+
+		// To be able to access the request body
+		this.router.route(apiRoute + "/*").handler(BodyHandler.create());
+
+		// TODO: Deal with failures
+		// this.router.route(apiRoute +
+		// "/*").failureHandler(this::failureHandler);
+
+		// Allow shutdown with a proper authorized request
+		this.router.post(apiRoute + "/shutdown").handler(this::shutdownHandler);
+
+		// Static pages
+		this.router.route().handler(StaticHandler.create());
+
+		// Launch the server
+		this.logger.info("Listening on port " + Integer.toString(this.appConfig.port));
+		this.vertx.createHttpServer().requestHandler(this.router::accept).listen(this.appConfig.port);
+
+		// Finally done
 		startFuture.complete();
-		
+	}
+
+	private void rootHandler(final RoutingContext ctx) {
+		ctx.response().putHeader(Constants.CONTENT_HEADER, Constants.CONTENT_TYPE_JSON);
+		final JsonObject result = new JsonObject().put("RunningSince", Utils.getDateString(this.startDate));
+		final JsonObject routeObject = new JsonObject();
+		for (final Route r : this.router.getRoutes()) {
+			final String p = r.getPath();
+			if (p != null) {
+				routeObject.put(p, String.valueOf(r));
+			}
+		}
+		result.put("Routes", routeObject);
+		final JsonArray verticleArray = new JsonArray(this.loadedVerticles);
+		result.put("Verticles", verticleArray);
+		ctx.response().end(result.encodePrettily());
+	}
+
+	private void setupRouteSecurity(final Router router) {
+		// TODO: Needs fixing
+	}
+
+	// Executes the actual shutdown once one of the shutdown handlers
+	// has accepted the shutdown request
+	private void shutdownExecution(final HttpServerResponse response) {
+		final JsonObject goodby = new JsonObject();
+		goodby.put("Goodby", "It was a pleasure doing business with you");
+		goodby.put("StartDate", Utils.getDateString(this.startDate));
+		goodby.put("EndDate", Utils.getDateString(new Date()));
+		final Duration dur = new Duration(new DateTime(this.startDate), new DateTime());
+		goodby.put("Duration", PeriodFormat.getDefault().print(new Period(dur)));
+		response.putHeader(Constants.CONTENT_HEADER, Constants.CONTENT_TYPE_JSON).setStatusCode(202)
+				.end(goodby.encodePrettily());
+		try {
+			Future<Void> shutdownFuture = Future.future();
+			shutdownFuture.setHandler(fResult -> {
+				if (fResult.failed()) {
+					this.logger.fatal(fResult.cause());
+					System.exit(-1);
+				}
+				System.out.println("Good by!");
+				this.getVertx().close(handler -> {
+					if (handler.failed()) {
+						this.logger.fatal(handler.cause());
+					}
+					System.exit(0);
+				});			
+			});
+			this.shutDownVerticles(shutdownFuture);
+		} catch (Exception e) {
+			this.logger.fatal(e.getMessage(), e);
+		}
+	}
+
+	// Use to terminate the application on a server - more caution needes
+	private void shutdownHandler(final RoutingContext ctx) {
+		// check for AdminKey header
+		String adminKey = this.config().getString("AdminKey");
+		if (adminKey == null || adminKey.equals(ctx.request().getHeader("AdminKey"))) {
+			// TODO: check the body for the right credentials
+			this.shutdownExecution(ctx.response());
+		} else {
+			ctx.fail(new ReplyException(ReplyFailure.RECIPIENT_FAILURE, 401, "Sucker nice try!"));
+		}
 	}
 
 }

@@ -11,6 +11,8 @@ public interface Constants {
 	String BUS_START_STOP = "SFDC:CommandLine";
 	String MESSAGE_STOP = "Party is over";
 	String DELIMITER = ":";
+	String API_ROOT = "/api";
+	String CONTENT_HEADER = "Content-Type";
+	String CONTENT_TYPE_JSON = "application/json";
 	
-
 }
