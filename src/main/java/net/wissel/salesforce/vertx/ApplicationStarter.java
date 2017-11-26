@@ -100,7 +100,7 @@ public class ApplicationStarter extends AbstractVerticle {
 	 */
 	@Override
 	public void stop(final Future<Void> stopFuture) throws Exception {
-		this.shutDownVerticles(stopFuture);
+		stopFuture.complete();
 	}
 
 	private void addParametersFromEnvironment(final AppConfig appConfig2) {
@@ -130,9 +130,9 @@ public class ApplicationStarter extends AbstractVerticle {
 	 *            - Future to report completions
 	 */
 	private void loadAppConfig(final Future<Void> verticleLoad) {
-		final ConfigStoreOptions env = new ConfigStoreOptions().setType("file").setFormat("json")
-				.setConfig(new JsonObject().put("path", Constants.OPTION_FILE_NAME));
-		final ConfigRetrieverOptions options = new ConfigRetrieverOptions().addStore(env);
+		final ConfigStoreOptions fileConfig = new ConfigStoreOptions().setType("file").setFormat("json")
+				.setConfig(new JsonObject().put("path", this.getOptionFileName()));
+		final ConfigRetrieverOptions options = new ConfigRetrieverOptions().addStore(fileConfig);
 		final ConfigRetriever retriever = ConfigRetriever.create(this.getVertx(), options);
 
 		retriever.getConfig(ar -> {
@@ -155,6 +155,10 @@ public class ApplicationStarter extends AbstractVerticle {
 			}
 		});
 
+	}
+
+	private String getOptionFileName() {
+		return this.config().getString(Constants.OPTION_FILE_NAME, Constants.OPTION_FILE_NAME);
 	}
 
 	private void loadedVerticles(final Future<Void> verticleLoad) {
@@ -216,7 +220,7 @@ public class ApplicationStarter extends AbstractVerticle {
 		this.getVertx().deployVerticle(verticleId, options, r -> {
 			if (r.succeeded()) {
 				final String vid = r.result();
-				this.logger.trace(verticleId + "started as " + vid);
+				this.logger.info(verticleId + " started as " + vid);
 				this.loadedVerticles.add(vid);
 				result.complete();
 			} else {
@@ -226,11 +230,13 @@ public class ApplicationStarter extends AbstractVerticle {
 		});
 		return result;
 	}
-	
+
 	/**
-	 * Loads a Verticle by instantiating the Java class first
-	 * needed when objects need to be handed over
-	 * @param bc the Base configuration
+	 * Loads a Verticle by instantiating the Java class first needed when
+	 * objects need to be handed over
+	 * 
+	 * @param bc
+	 *            the Base configuration
 	 * @return a future that resolves after loading
 	 */
 	private Future<Void> loadVerticleByClass(final BaseConfig bc) {
@@ -273,21 +279,26 @@ public class ApplicationStarter extends AbstractVerticle {
 
 	private void shutDownVerticles(final Future<Void> stopFuture) {
 		final EventBus eb = this.getVertx().eventBus();
+
 		@SuppressWarnings("rawtypes")
 		final List<Future> stopListening = new ArrayList<Future>();
 		this.logger.info("Shutting down listeners, can take a while....");
 		// Make the listeners stop listening
 		for (final ListenerConfig lc : this.appConfig.listenerConfigurations) {
 			final Future<Void> curFuture = Future.future();
-			final String message = Constants.MESSAGE_STOP + Constants.DELIMITER + lc.getVerticleName();
-			eb.send(Constants.BUS_START_STOP, message, ar -> {
-				if (ar.succeeded()) {
-					curFuture.complete();
-				} else {
-					curFuture.fail(ar.cause());
-				}
-			});
-			stopListening.add(curFuture);
+			final String shutdowAddress = Constants.BUS_START_STOP + Constants.DELIMITER + lc.getVerticleName();
+			try {
+				eb.send(shutdowAddress, Constants.MESSAGE_STOP, ar -> {
+					if (ar.succeeded()) {
+						curFuture.complete();
+					} else {
+						curFuture.fail(ar.cause());
+					}
+				});
+				stopListening.add(curFuture);
+			} catch (Throwable t) {
+				this.logger.error(t);
+			}
 		}
 
 		// Continue when all stopped listening
@@ -322,10 +333,11 @@ public class ApplicationStarter extends AbstractVerticle {
 	}
 
 	private void startWebServer(final Future<Void> startFuture) {
-		// TODO Auto-generated method stub
+		// TODO Implement the web server here
 
-		this.logger.trace("System started " + Utils.getDateString(this.startDate));
+		this.logger.info("System started " + Utils.getDateString(this.startDate));
 		startFuture.complete();
+		
 	}
 
 }
