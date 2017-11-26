@@ -21,12 +21,15 @@
  */
 package net.wissel.salesforce.vertx.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Configuration for consumers listening on event bus messages to act on them
  *
  * @author stw
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ConsumerConfig extends BaseConfig {
 
 	/**

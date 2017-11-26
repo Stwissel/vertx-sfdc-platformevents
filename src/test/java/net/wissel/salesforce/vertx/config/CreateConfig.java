@@ -48,8 +48,8 @@ public class CreateConfig {
 		auth.setAuthName("default");
 		auth.setVerticleName(Constants.PRODUCTION);
 		auth.setServerURL(Constants.PRODUCTION);
-		auth.setUserName("User");
-		auth.setPassWord("pwd");
+		auth.setSfdcUser("User");
+		auth.setSfdcPassword("pwd");
 		auth.addParameter("key", "value");
 
 		final ListenerConfig lc = new ListenerConfig();
@@ -59,7 +59,6 @@ public class CreateConfig {
 		lc.addEventBusAddress("SFDC.SampleEvents2");
 		lc.setAuthName("default");
 		lc.setListenSubject("/event/DataChange__e");
-		lc.setForwardAs(ListenerConfig.ForwardAs.PUBLISH);
 
 		final ConsumerConfig cc = new ConsumerConfig();
 		cc.setAutoStart(true);

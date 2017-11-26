@@ -24,12 +24,15 @@ package net.wissel.salesforce.vertx.config;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Common methods of the configuration classes
  *
  * @author stw
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class BaseConfig {
 
 	/**

@@ -34,10 +34,10 @@ import io.vertx.core.logging.LoggerFactory;
  * @author swissel
  *
  */
-public class AbstractSFDCVerticle extends AbstractVerticle {
+public abstract class AbstractSFDCVerticle extends AbstractVerticle {
 
 	protected boolean shuttingDown = false;
-	protected boolean shutdowCompleted = false;
+	protected boolean shutdownCompleted = false;
 	protected boolean startupCompleted = false;
 	protected boolean listening = false;
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
@@ -93,7 +93,7 @@ public class AbstractSFDCVerticle extends AbstractVerticle {
 		this.shuttingDown = true;
 		final Future<Void> stopListenFuture = Future.future();
 		stopListenFuture.setHandler(handler -> {
-			this.shutdowCompleted = true;
+			this.shutdownCompleted = true;
 			this.logger.info("Stopped verticle:" + this.getClass().getName());
 			stopFuture.complete();
 		});
@@ -123,7 +123,7 @@ public class AbstractSFDCVerticle extends AbstractVerticle {
 				// to we set that to false in any case
 				this.startupCompleted = true;
 				// Make sure we are not in shutdown already
-				if (!this.shuttingDown && !this.shutdowCompleted) {
+				if (!this.shuttingDown && !this.shutdownCompleted) {
 					result = this.config().getBoolean(Constants.CONFIG_AUTOSTART, true);
 				}
 			}
@@ -132,17 +132,10 @@ public class AbstractSFDCVerticle extends AbstractVerticle {
 		return result;
 	}
 
-	// TODO: make this abstract
-	private void startListening() {
-		System.out.println("Start listening:" + this.getClass().getName());
-		this.listening = true;
-	}
+	// Verticle actually starting to listen to EventBus or incoming messages
+	protected abstract void startListening();
 
-	// TODO: make this abstact
-	private void stopListening(final Future<Void> stopListenFuture) {
-		System.out.println("Stop listening:" + this.getClass().getName());
-		this.listening = false;
-		stopListenFuture.complete();
-	}
+	// End of listening, typically before unload or interactive mode
+	protected abstract void stopListening(final Future<Void> stopListenFuture);
 
 }

@@ -19,33 +19,28 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.salesforce.vertx;
+package net.wissel.salesforce.vertx.auth;
 
-public interface Constants {
-	String API_ROOT = "/api";
-	String AUTH_SOAP_LOGIN = "/services/Soap/u/41.0/";
-	String AUTH_SOAP_TEMPLATE = "/logintemplate.xml";	
-	String BUS_START_STOP = "SFDC:CommandLine";
-	String BUS_AUTHREQUEST = "SFDC:Auth:";
-	String CONFIG_AUTHNAME = "authName";
-	String CONFIG_AUTOSTART = "autoStart";
-	String CONFIG_PORT = "Port";
-	String CONTENT_HEADER = "Content-Type";
-	String CONTENT_TYPE_JSON = "application/json";
-	String DEFAULT_AUTH_VERTICLE = "net.wissel.salesforce.vertx.auth.SoapApi";
-	String DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
-	String DEFAULT_LISTENER = "net.wissel.salesforce.vertx.listener.CometD";
-	String DELIMITER = ":";
-	String MESSAGE_ISSTARTUP = "StartupMessage";
-	String MESSAGE_START = "Rock it cowboys";
-	String MESSAGE_STOP = "Party is over";
-	String OPTION_FILE_NAME = "SFDCOptions.json";
-	String PRODUCTION = "login.salesforce.com";
-	String SANDBOX = "test.salesforce.com";
-	int TLS_PORT = 443;	
-	// Silly, but Message headers only take Strings
-	String TRUESTRING = "True";
-	String URL_HANDSHAKE = "/cometd/41.0/handshake";
-	String URL_SUBSCRIBE = "/cometd/41.0/subscribe";
-	String URL_CONNECT = "/cometd/41.0/connect";
+/**
+ * @author swissel
+ *
+ */
+public class AuthInfo {
+	public final String serverName;
+	public final String sessionToken;
+	
+	public AuthInfo(final String server, final String token) {
+		this.serverName = server;
+		this.sessionToken = token;
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return String.valueOf(this.serverName)+"\n"+String.valueOf(this.sessionToken);
+	}
+	
+	
 }

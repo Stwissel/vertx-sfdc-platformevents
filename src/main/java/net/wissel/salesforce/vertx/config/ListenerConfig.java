@@ -24,6 +24,8 @@ package net.wissel.salesforce.vertx.config;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Setup for a subscriber listening to a Salesforce platform emitter As of
  * Winter '18 there is only CometD, but that might change in future
@@ -31,18 +33,8 @@ import java.util.Set;
  * @author stw
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ListenerConfig extends BaseConfig {
-
-	/**
-	 * How will incoming data be processes SEND: to one receiving Verticle
-	 * PUBLISH: any verticle care to listen
-	 *
-	 * @author stw
-	 *
-	 */
-	public enum ForwardAs {
-		SEND, PUBLISH
-	}
 
 	/**
 	 * Which authConfig will provide the actual server and session string
@@ -58,11 +50,6 @@ public class ListenerConfig extends BaseConfig {
 	 * Destination(s) to forward incoming data to
 	 */
 	private Set<String> eventBusAddresses = new HashSet<String>();
-
-	/**
-	 * Send or publish incoming data?
-	 */
-	private ForwardAs forwardAs = ForwardAs.SEND;
 
 	public void addEventBusAddress(final String address) {
 		this.eventBusAddresses.add(address);
@@ -80,13 +67,6 @@ public class ListenerConfig extends BaseConfig {
 	 */
 	public final Set<String> getEventBusAddresses() {
 		return this.eventBusAddresses;
-	}
-
-	/**
-	 * @return the forwardAs
-	 */
-	public final ForwardAs getForwardAs() {
-		return this.forwardAs;
 	}
 
 	/**
@@ -119,14 +99,6 @@ public class ListenerConfig extends BaseConfig {
 	 */
 	public final void setEventBusAddresses(final Set<String> eventBusAddresses) {
 		this.eventBusAddresses = eventBusAddresses;
-	}
-
-	/**
-	 * @param forwardAs
-	 *            the forwardAs to set
-	 */
-	public final void setForwardAs(final ForwardAs forwardAs) {
-		this.forwardAs = forwardAs;
 	}
 
 	/**

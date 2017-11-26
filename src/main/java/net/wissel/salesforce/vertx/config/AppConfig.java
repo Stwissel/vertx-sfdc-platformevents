@@ -26,6 +26,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Data class holding the configuration settings for the entire application
  * consisting of: - Listener configuration: Name, Parameters, Bus addresses -
@@ -35,6 +37,7 @@ import java.util.Map;
  * @author stw
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AppConfig {
 
 	public final Collection<AuthConfig> authConfigurations = new ArrayList<AuthConfig>();

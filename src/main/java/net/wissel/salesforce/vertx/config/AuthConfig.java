@@ -21,6 +21,8 @@
  */
 package net.wissel.salesforce.vertx.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Stores configuration options for an authorization provider The authentication
  * provider provides the value of the Authorization string typically added to
@@ -29,6 +31,7 @@ package net.wissel.salesforce.vertx.config;
  * @author stw
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AuthConfig extends BaseConfig {
 
 	/**
@@ -48,12 +51,12 @@ public class AuthConfig extends BaseConfig {
 	 * Username, typically supplied by env_variable Variable
 	 * is[authName]_userName
 	 */
-	private String userName = null;
+	private String sfdcUser = null;
 
 	/**
 	 * Password, typically supplied by env_variable
 	 */
-	private String passWord = null;
+	private String sfdcPassword = null;
 
 	/**
 	 * @return the authName
@@ -63,24 +66,10 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
-	 * @return the passWord
-	 */
-	public final String getPassWord() {
-		return this.passWord;
-	}
-
-	/**
 	 * @return the serverURL
 	 */
 	public final String getServerURL() {
 		return this.serverURL;
-	}
-
-	/**
-	 * @return the userName
-	 */
-	public final String getUserName() {
-		return this.userName;
 	}
 
 	/**
@@ -92,11 +81,17 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
-	 * @param passWord
-	 *            the passWord to set
+	 * @return the sfdcUser
 	 */
-	public final void setPassWord(final String passWord) {
-		this.passWord = passWord;
+	public final String getSfdcUser() {
+		return sfdcUser;
+	}
+
+	/**
+	 * @return the sfdcPassword
+	 */
+	public final String getSfdcPassword() {
+		return sfdcPassword;
 	}
 
 	/**
@@ -108,10 +103,18 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
+	 * @param passWord
+	 *            the passWord to set
+	 */
+	public final void setSfdcPassword(final String passWord) {
+		this.sfdcPassword = passWord;
+	}
+
+	/**
 	 * @param userName
 	 *            the userName to set
 	 */
-	public final void setUserName(final String userName) {
-		this.userName = userName;
+	public final void setSfdcUser(final String userName) {
+		this.sfdcUser = userName;
 	}
 }

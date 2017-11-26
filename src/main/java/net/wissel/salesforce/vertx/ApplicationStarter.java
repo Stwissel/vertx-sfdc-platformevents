@@ -130,7 +130,8 @@ public class ApplicationStarter extends AbstractVerticle {
 		// and parameters with prefix for each listener / consumer entry
 		List<String> configNames = Arrays.asList("listenerConfigurations", "consumerConfigurations",
 				"authConfigurations");
-		List<String> envNames = Arrays.asList("Proxy", "ProxyPort", "SFDCUser", "SFDCPassword");
+		List<String> envNames = Arrays.asList("Proxy", "ProxyPort", "sfdcUser", "sfdcPassword");
+		List<String> proxyNames = Arrays.asList("Proxy", "ProxyPort");
 		for (String cName : configNames) {
 			try {
 				JsonArray cArray = configCandidate.getJsonArray(cName);
@@ -139,12 +140,14 @@ public class ApplicationStarter extends AbstractVerticle {
 						JsonObject c = (JsonObject) oneConf;
 						String prefix = c.getString(Constants.CONFIG_AUTHNAME);
 						if (prefix != null) {
-							envNames.forEach(key -> {
+							List<String> toProcess = (cName.equals("authConfigurations")) ? envNames : proxyNames;
+							toProcess.forEach(key -> {
 								String candidate = System.getenv(prefix + "_" + key);
 								if (candidate != null) {
 									c.put(key, candidate);
 								}
 							});
+							
 						}
 					});
 				}
@@ -196,9 +199,9 @@ public class ApplicationStarter extends AbstractVerticle {
 					return;
 				}
 				// Hot reload for config changes
-				retriever.listen(change -> {
-					// TODO: implement hot reload
-				});
+//				retriever.listen(change -> {
+//					// TODO: implement hot reload
+//				});
 			}
 		});
 
@@ -332,12 +335,16 @@ public class ApplicationStarter extends AbstractVerticle {
 		@SuppressWarnings("rawtypes")
 		final List<Future> stopListening = new ArrayList<Future>();
 		this.logger.info("Shutting down listeners, can take a while....");
+		DeliveryOptions delOpt = new DeliveryOptions();
+		// The shutdown might be mightly delayed
+		// Due to the nature of cometD, so we wait 30 seconds
+		delOpt.setSendTimeout(30000);
 		// Make the listeners stop listening
 		for (final ListenerConfig lc : this.appConfig.listenerConfigurations) {
 			final Future<Void> curFuture = Future.future();
 			final String shutdowAddress = Constants.BUS_START_STOP + Constants.DELIMITER + lc.getVerticleName();
 			try {
-				eb.send(shutdowAddress, Constants.MESSAGE_STOP, ar -> {
+				eb.send(shutdowAddress, Constants.MESSAGE_STOP, delOpt, ar -> {
 					if (ar.succeeded()) {
 						curFuture.complete();
 					} else {

@@ -21,6 +21,7 @@
  */
 package net.wissel.salesforce.vertx.consumer;
 
+import io.vertx.core.Future;
 import io.vertx.ext.web.Router;
 import net.wissel.salesforce.vertx.AbstractSFDCVerticle;
 
@@ -36,5 +37,21 @@ public class WebSocketConsumer extends AbstractSFDCVerticle implements SFDCConsu
 	public void setRouter(Router router) {
 		this.router = router;
 	}
+	
+
+	@Override
+	protected void startListening() {
+		System.out.println("Start listening:" + this.getClass().getName());
+		this.listening = true;		
+	}
+
+	@Override
+	protected void stopListening(Future<Void> stopListenFuture) {
+		System.out.println("Stop listening:" + this.getClass().getName());
+		this.listening = false;
+		stopListenFuture.complete();
+		
+	}
+
 
 }

@@ -4,8 +4,8 @@
             "authName": "default",
             "verticleName": "net.wissel.salesforce.vertx.auth.SoapApi",
             "serverURL": "login.salesforce.com",
-            "userName": "User",
-            "passWord": "pwd",
+            "sfdcUser": "User",
+            "sfdcPassword": "pwd",
             "parameters": { "key": "value" }
         }
     ],
