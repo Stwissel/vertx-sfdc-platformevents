@@ -1,0 +1,15 @@
+{
+    "authConfigurations": [
+        {
+            "authName": "basic",
+            "verticleName": "net.wissel.salesforce.vertx.auth.Basic",
+            "serverURL": "login.salesforce.com",
+            "sfdcUser": "User",
+            "sfdcPassword": "pwd",
+            "parameters": { "key": "value" }
+        }
+    ],
+    "listenerConfigurations": [],
+    "consumerConfigurations": [],
+    "verticlesToLoad": {}
+}
