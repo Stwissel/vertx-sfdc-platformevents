@@ -45,7 +45,7 @@ public class ApplicationStarterTest {
 	public void setUp(final TestContext context) {
 		this.vertx = Vertx.vertx();
 		DeploymentOptions dOpts = new DeploymentOptions();
-		dOpts.setConfig(new JsonObject().put(Constants.OPTION_FILE_NAME, "sampleconfig.json"));
+		dOpts.setConfig(new JsonObject().put(Constants.OPTION_FILE_NAME, "simpletest.json"));
 		this.vertx.deployVerticle(ApplicationStarter.class.getName(), dOpts, context.asyncAssertSuccess());
 	}
 
