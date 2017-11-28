@@ -48,100 +48,20 @@ import com.github.mustachejava.MustacheFactory;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
-import net.wissel.salesforce.vertx.AbstractSFDCVerticle;
 import net.wissel.salesforce.vertx.Constants;
-import net.wissel.salesforce.vertx.config.AuthConfig;
 
-public class SoapApi extends AbstractSFDCVerticle {
-
-	private AuthConfig authConfig = null;
-	private AuthInfo cachedAuthInfo = null;
-	private MessageConsumer<String> consumer = null;
-
-	// We try only once
-	private boolean loginFailed = false;
+public class SoapApi extends AbstractAuth {
 
 	@Override
-	protected void startListening() {
-		// No need to start this if it is running
-		if (this.listening && this.consumer != null) {
-			return;
-		}
-		EventBus eb = this.getVertx().eventBus();
-		eb.registerDefaultCodec(AuthInfo.class, new AuthInfoCodec());
-		String address = Constants.BUS_AUTHREQUEST + this.getAuthConfig().getAuthName();
-		this.consumer = eb.consumer(address, handler -> {
-			if (this.cachedAuthInfo != null) {
-				handler.reply(this.cachedAuthInfo);
-			} else {
-				if (this.loginFailed) {
-					// No second try
-					handler.fail(500, "Previous login attempt failed, login disabled");
-				} else {
-					Future<AuthInfo> futureAuthinfo = Future.future();
-					futureAuthinfo.setHandler(authHandler -> {
-						if (authHandler.succeeded()) {
-							handler.reply(authHandler.result());
-						} else {
-							this.loginFailed = true;
-							this.logger.error(authHandler.cause());
-							handler.fail(500, authHandler.cause().getMessage());
-						}
-					});
-					this.login(futureAuthinfo);
-				}
-			}
-		});
-		System.out.println("Start listening:" + this.getClass().getName());
-		this.listening = true;
-	}
-
-	/**
-	 * @see net.wissel.salesforce.vertx.AbstractSFDCVerticle#start(io.vertx.core.Future)
-	 */
-	@Override
-	public void start(Future<Void> startFuture) throws Exception {
-		// Authentication needs to listen first
-		this.startListening();
-		super.start(startFuture);
-	}
-
-	@Override
-	protected void stopListening(Future<Void> stopListenFuture) {
-		System.out.println("Stop listening:" + this.getClass().getName());
-		if (this.consumer != null) {
-			this.consumer.unregister(handler -> {
-				this.consumer = null;
-				this.listening = false;
-				this.loginFailed = false;
-				stopListenFuture.complete();
-			});
-		} else {
-			this.consumer = null;
-			this.listening = false;
-			this.loginFailed = false;
-			stopListenFuture.complete();
-		}
-	}
-
-	private AuthConfig getAuthConfig() {
-		if (this.authConfig == null) {
-			this.authConfig = this.config().mapTo(AuthConfig.class);
-		}
-		return this.authConfig;
-	}
-
-	private void login(Future<AuthInfo> futureAuthinfo) {
+	protected void login(final Future<AuthInfo> futureAuthinfo) {
 		final WebClientOptions wco = new WebClientOptions();
-		String proxyHost = this.getAuthConfig().getProxy();
-		int proxyPort = this.getAuthConfig().getProxyPort();
-		if (proxyHost != null && proxyPort > 0) {
+		final String proxyHost = this.getAuthConfig().getProxy();
+		final int proxyPort = this.getAuthConfig().getProxyPort();
+		if ((proxyHost != null) && (proxyPort > 0)) {
 			final ProxyOptions po = new ProxyOptions();
 			wco.setProxyOptions(po);
 			po.setHost(proxyHost).setPort(proxyPort);
@@ -163,23 +83,7 @@ public class SoapApi extends AbstractSFDCVerticle {
 		}
 	}
 
-	private void resultOfAuthentication(AsyncResult<HttpResponse<Buffer>> postReturn, Future<AuthInfo> futureAuthinfo) {
-		if (postReturn.succeeded()) {
-			// Get session info
-			final Buffer body = postReturn.result().body();
-			AuthInfo a = this.extractAuthInfoFromBody(body);
-			if (a != null) {
-				this.cachedAuthInfo = a;
-				futureAuthinfo.complete(a);
-			} else {
-				futureAuthinfo.fail("Authentication phase failed, please check log");
-			}
-		} else {
-			futureAuthinfo.fail(postReturn.cause());
-		}
-	}
-
-	private AuthInfo extractAuthInfoFromBody(Buffer body) {
+	private AuthInfo extractAuthInfoFromBody(final Buffer body) {
 		AuthInfo result = null;
 		String instanceHostName = null;
 		String sessionId = null;
@@ -250,7 +154,7 @@ public class SoapApi extends AbstractSFDCVerticle {
 
 		// When we have non-null instanceHostName and sessionId
 		// Our authentication worked
-		if (instanceHostName != null && sessionId != null) {
+		if ((instanceHostName != null) && (sessionId != null)) {
 			result = new AuthInfo(instanceHostName, sessionId);
 		}
 
@@ -285,6 +189,23 @@ public class SoapApi extends AbstractSFDCVerticle {
 		}
 
 		return Buffer.buffer(out.toByteArray());
+	}
+
+	private void resultOfAuthentication(final AsyncResult<HttpResponse<Buffer>> postReturn,
+			final Future<AuthInfo> futureAuthinfo) {
+		if (postReturn.succeeded()) {
+			// Get session info
+			final Buffer body = postReturn.result().body();
+			final AuthInfo a = this.extractAuthInfoFromBody(body);
+			if (a != null) {
+				this.setCachedAuthInfo(a);
+				futureAuthinfo.complete(a);
+			} else {
+				futureAuthinfo.fail("Authentication phase failed, please check log");
+			}
+		} else {
+			futureAuthinfo.fail(postReturn.cause());
+		}
 	}
 
 }
