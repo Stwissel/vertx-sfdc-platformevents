@@ -71,6 +71,9 @@ public class CreateConfig {
 		cc2.setAutoStart(false);
 		cc2.setEventBusAddress("SFDC.SampleEvents");
 		cc2.setVerticleName("net.wissel.salesforce.vertx.consumer.webSocketConsumer");
+		cc2.setEnabled(true);
+		cc2.setAutoStart(true);
+		cc2.setUrl("/datachange/*");
 
 		a.addAuthConfig(auth);
 		a.addListenerConfig(lc);

@@ -1,41 +1,55 @@
 {
     "authConfigurations": [
-        {
-            "authName": "default",
-            "verticleName": "net.wissel.salesforce.vertx.auth.SoapApi",
-            "serverURL": "login.salesforce.com",
-            "sfdcUser": "User",
-            "sfdcPassword": "pwd",
-            "parameters": { "key": "value" }
-        }
+    {
+    "authName": "default",
+    "verticleName": "net.wissel.salesforce.vertx.auth.SoapApi",
+    "serverURL": "login.salesforce.com",
+    "sfdcUser": "User",
+    "sfdcPassword": "pwd"
+    }
     ],
     "listenerConfigurations": [
-        {
-            "authName": "default",
-            "verticleName": "net.wissel.salesforce.vertx.listener.CometD",
-            "listenSubject": "/event/DataChange__e",
-            "eventBusAddresses": ["SFDC.SampleEvents2", "SFDC.SampleEvents"],
-            "forwardAs": "PUBLISH",
-            "parameters": {"key":"value"}
+    {
+        "verticleName": "net.wissel.salesforce.vertx.listener.CometD",
+        "verticleInstanceCount": 1,
+        "deployAsWorker": false,
+        "autoStart": true,
+        "enabled": true,
+        "providesRouterExtension": false,
+        "proxy": null,
+        "proxyPort": 0,
+        "parameters":
+        {},
+        "authName": "default",
+        "listenSubject": "/event/DataChange__e",
+        "eventBusAddresses": ["SFDC.SampleEvents2", "SFDC.SampleEvents"]
+    }],
+    "consumerConfigurations": [
+    {
+            "verticleName": "net.wissel.salesforce.vertx.consumer.WebSocketConsumer",
+            "eventBusAddress": "SFDC:SampleEvents",
+            "deployAsWorker": false,
+            "autoStart": true,
+            "providesRouterExtension": true,
+            "parameters":
+             {
+                "websocketname" : "ui.data.changes"
+             },
+            "url": "/datachange/*"
         },
         {
-            "authName": "default",
-            "verticleName": "net.wissel.salesforce.vertx.listener.CometD",
-            "listenSubject": "/event/DataChange2__e",
-            "eventBusAddresses": ["SFDC.SampleEvents2"],
-            "parameters": {"key":"value"}
-        }
-    ],
-    "consumerConfigurations": [
-        {
-            "verticleName": "net.wissel.salesforce.vertx.consumer.WebSocketConsumer",
-            "eventBusAddress": "SFDC.SampleEvents",
-            "providesRouterExtension": true,
+            "verticleName": "net.wissel.salesforce.vertx.consumer.ConsoleConsumer",
+            "eventBusAddress": "SFDC:SampleEvents",
             "deployAsWorker": false,
-            "autoStart": false
-        }
-    ],
-    "verticlesToLoad": {},
-    "parameters": { "key2": "value",
-                    "key": "value" }
+            "autoStart": true,
+            "providesRouterExtension": false
+        }],
+    "verticlesToLoad":
+    {},
+    "parameters":
+    {
+        "key2": "value",
+        "key": "value"
+    },
+    "port": 8044
 }

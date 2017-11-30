@@ -92,7 +92,7 @@ public class CometD extends AbstractSFDCVerticle {
 		this.getListenerConfig().getEventBusAddresses().forEach(destination -> {
 			try {
 				eb.publish(destination, payload);
-				System.out.println("Sending to [" + destination + "]:" + payload.toString());
+				this.logger.info("Sending to [" + destination + "]:" + payload.toString());
 			} catch (final Throwable t) {
 				this.logger.error(t.getMessage(), t);
 			}
@@ -132,6 +132,7 @@ public class CometD extends AbstractSFDCVerticle {
 
 	@Override
 	protected void stopListening(final Future<Void> stopListenFuture) {
+		this.shuttingDown = true;
 		if (this.shutdownCompleted) {
 			this.authInfo = null;
 			this.listening = false;
@@ -374,7 +375,7 @@ public class CometD extends AbstractSFDCVerticle {
 			this.shutdownCompleted = true;
 			return;
 		}
-		System.out.println("Fetch "+ Utils.getDateString(new Date()));
+		this.logger.info("Fetch "+ Utils.getDateString(new Date()));
 		final JsonArray body = this.getConnectBody();
 		final HttpRequest<Buffer> request = this.initWebPostRequest(Constants.URL_CONNECT);
 		request.as(BodyCodec.jsonArray()).sendJson(body, this::subscriptionResult);

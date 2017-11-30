@@ -21,37 +21,48 @@
  */
 package net.wissel.salesforce.vertx.consumer;
 
-import io.vertx.core.Future;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Router;
-import net.wissel.salesforce.vertx.AbstractSFDCVerticle;
+import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 
 /**
  * @author swissel
  *
  */
-public class WebSocketConsumer extends AbstractSFDCVerticle implements SFDCConsumer {
-	
-	private Router router = null;
+public class WebSocketConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
 
 	@Override
-	public void setRouter(Router router) {
-		this.router = router;
+	protected void addRoutes(final Router router) {
+		// Socket handler
+		final SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
+		final SockJSHandler sockJSHandler = SockJSHandler.create(this.vertx, options);
+
+		final BridgeOptions bo = new BridgeOptions()
+				.addOutboundPermitted(new PermittedOptions().setAddress(this.getWebSocketName()));
+
+		sockJSHandler.bridge(bo, event -> {
+			this.logger.info("A websocket event occurred: " + event.type() + "; " + event.getRawMessage());
+			event.complete(true);
+		});
+
+		final String someURL = this.getConsumerConfig().getUrl();
+		this.logger.info("Router listening on " + someURL + " for " + this.getWebSocketName());
+		router.route(someURL).handler(sockJSHandler);
+
 	}
-	
 
 	@Override
-	protected void startListening() {
-		System.out.println("Start listening:" + this.getClass().getName());
-		this.listening = true;		
+	protected void processIncoming(final Message<JsonObject> incomingData) {
+		final JsonObject body = incomingData.body();
+		this.logger.info("Published to eventbus:" + body.toString());
+		this.getVertx().eventBus().publish(this.getWebSocketName(), body);
 	}
 
-	@Override
-	protected void stopListening(Future<Void> stopListenFuture) {
-		System.out.println("Stop listening:" + this.getClass().getName());
-		this.listening = false;
-		stopListenFuture.complete();
-		
+	private String getWebSocketName() {
+		return this.getConsumerConfig().getParameters().get("websocketname");
 	}
-
-
 }
