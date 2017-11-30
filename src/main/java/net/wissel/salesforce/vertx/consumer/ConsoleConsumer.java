@@ -19,78 +19,28 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.salesforce.vertx.config;
+package net.wissel.salesforce.vertx.consumer;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
 
 /**
- * Configuration for consumers listening on event bus messages to act on them
- *
- * @author stw
+ * @author swissel
  *
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ConsumerConfig extends BaseConfig {
+public class ConsoleConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
 
-	/**
-	 * Destination to listen to
-	 */
-	private String eventBusAddress;
-
-	/**
-	 * Which authConfig will provide authorization (if any)
-	 */
-	private String authName = null;
-
-	/**
-	 * Endpoint the consumer serves
-	 * can be REST, SOAP, SOCKET
-	 */
-	private String url;
-
-
-	/**
-	 * @return the authName
-	 */
-	public final String getAuthName() {
-		return this.authName;
+	@Override
+	protected void addRoutes(final Router router) {
+		// We don't use routes here
 	}
 
-	/**
-	 * @return the eventBusAddress
-	 */
-	public final String getEventBusAddress() {
-		return this.eventBusAddress;
-	}
-
-	
-
-	/**
-	 * @param authName
-	 *            the authName to set
-	 */
-	public final void setAuthName(final String authName) {
-		this.authName = authName;
-	}
-
-	/**
-	 * @param eventBusAddress
-	 *            the eventBusAddress to set
-	 */
-	public final void setEventBusAddress(final String eventBusAddress) {
-		this.eventBusAddress = eventBusAddress;
-	}
-
-	/**
-	 * 
-	 * @return The URL the consumer serves, e.g. REST, WebSocket etc
-	 */
-	public final String getUrl() {
-		return this.url;
-	}
-	
-	public final void setUrl(final String newURL) {
-		this.url = newURL;
+	@Override
+	// Just write out to the console
+	protected void processIncoming(final Message<JsonObject> incomingData) {
+		final JsonObject body = incomingData.body();
+		System.out.println(body.encodePrettily());
 	}
 
 }
