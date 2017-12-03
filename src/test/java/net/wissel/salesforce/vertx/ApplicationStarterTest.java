@@ -29,8 +29,11 @@ import org.junit.runner.RunWith;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 
 /**
  * @author swissel
@@ -44,7 +47,7 @@ public class ApplicationStarterTest {
 	@Before
 	public void setUp(final TestContext context) {
 		this.vertx = Vertx.vertx();
-		DeploymentOptions dOpts = new DeploymentOptions();
+		final DeploymentOptions dOpts = new DeploymentOptions();
 		dOpts.setConfig(new JsonObject().put(Constants.OPTION_FILE_NAME, "simpletest.json"));
 		this.vertx.deployVerticle(ApplicationStarter.class.getName(), dOpts, context.asyncAssertSuccess());
 	}
@@ -54,10 +57,22 @@ public class ApplicationStarterTest {
 		this.vertx.close(context.asyncAssertSuccess());
 	}
 
+	/* Check if the API endpoint is listening */
 	@Test
 	public void testAPIListening(final TestContext context) {
-		// final Async async = context.async();
-		// TODO: something useful
-		context.assertFalse(false);
+		final Async async = context.async();
+		final WebClientOptions wco = new WebClientOptions();
+		wco.setUserAgent("SDFC VertX Unit Tester");
+		wco.setTryUseCompression(true);
+		final WebClient client = WebClient.create(this.vertx, wco);
+
+		client.get("http://localhost:8044/api").send(result -> {
+			if (result.succeeded()) {
+				context.assertEquals(200, result.result().statusCode());
+			} else {
+				context.fail(result.cause());
+			}
+			async.complete();
+		});
 	}
 }

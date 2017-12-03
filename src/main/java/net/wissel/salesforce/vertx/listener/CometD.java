@@ -41,6 +41,7 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import net.wissel.salesforce.vertx.AbstractSFDCVerticle;
 import net.wissel.salesforce.vertx.Constants;
+import net.wissel.salesforce.vertx.SFDCVerticle;
 import net.wissel.salesforce.vertx.Utils;
 import net.wissel.salesforce.vertx.auth.AuthInfo;
 import net.wissel.salesforce.vertx.config.ListenerConfig;
@@ -114,7 +115,7 @@ public class CometD extends AbstractSFDCVerticle {
 	}
 
 	@Override
-	protected void startListening() {
+	public SFDCVerticle startListening() {
 
 		// First get a proper session
 		this.getAuthInfo().setHandler(handler -> {
@@ -128,10 +129,11 @@ public class CometD extends AbstractSFDCVerticle {
 			}
 		});
 		this.listening = true;
+		return this;
 	}
 
 	@Override
-	protected void stopListening(final Future<Void> stopListenFuture) {
+	public SFDCVerticle stopListening(final Future<Void> stopListenFuture) {
 		this.shuttingDown = true;
 		if (this.shutdownCompleted) {
 			this.authInfo = null;
@@ -150,6 +152,7 @@ public class CometD extends AbstractSFDCVerticle {
 			});
 			
 		}
+		return this;
 	}
 
 	private void captureCookie(final String newCookie) {

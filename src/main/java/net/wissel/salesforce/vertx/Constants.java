@@ -31,7 +31,7 @@ public interface Constants {
 	String CONFIG_AUTOSTART = "autoStart";
 	String CONFIG_PORT = "Port";
 	String CONTENT_HEADER = "Content-Type";
-	String CONTENT_TYPE_JSON = "application/json";
+	String CONTENT_TYPE_JSON = "application/json;charset=UTF-8";
 	String DEFAULT_AUTH_VERTICLE = "net.wissel.salesforce.vertx.auth.SoapApi";
 	String DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 	String DEFAULT_LISTENER = "net.wissel.salesforce.vertx.listener.CometD";
@@ -49,4 +49,6 @@ public interface Constants {
 	String URL_SUBSCRIBE = "/cometd/41.0/subscribe";
 	String URL_CONNECT = "/cometd/41.0/connect";
 	String AUTH_RESET = "RESET";
+	String PARAM_STYLESHEET = "stylesheet.mustache";
+	String AUTH_HEADER = "Authorization";
 }

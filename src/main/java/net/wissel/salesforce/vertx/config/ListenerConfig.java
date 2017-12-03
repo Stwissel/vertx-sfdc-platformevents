@@ -89,24 +89,27 @@ public class ListenerConfig extends BaseConfig {
 	 * @param authName
 	 *            the authName to set
 	 */
-	public final void setAuthName(final String authName) {
+	public final ListenerConfig setAuthName(final String authName) {
 		this.authName = authName;
+		return this;
 	}
 
 	/**
 	 * @param eventBusAddresses
 	 *            the eventBusAddresses to set
 	 */
-	public final void setEventBusAddresses(final Set<String> eventBusAddresses) {
+	public final ListenerConfig setEventBusAddresses(final Set<String> eventBusAddresses) {
 		this.eventBusAddresses = eventBusAddresses;
+		return this;
 	}
 
 	/**
 	 * @param listenSubject
 	 *            the listenSubject to set
 	 */
-	public final void setListenSubject(final String listenSubject) {
+	public final ListenerConfig setListenSubject(final String listenSubject) {
 		this.listenSubject = listenSubject;
+		return this;
 	}
 
 }

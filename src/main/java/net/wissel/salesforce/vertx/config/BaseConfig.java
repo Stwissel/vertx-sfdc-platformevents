@@ -92,6 +92,33 @@ public class BaseConfig {
 	public Map<String, String> getParameters() {
 		return this.parameters;
 	}
+	
+	/**
+	 * Was an additional parameter provided in the configuration
+	 * @param paraName
+	 * @return
+	 */
+	public boolean hasParameter(final String paraName) {
+		return (this.parameters != null && this.parameters.containsKey(paraName));
+	}
+	
+	/** 
+	 * Returns a specific parameter if existing
+	 * @param paraName name of the parameter
+	 * @return the value or null
+	 */
+	public String getParameter(final String paraName) {
+		return (this.parameters == null) ? null : this.parameters.get(paraName);
+	}
+	
+	/** 
+	 * Returns a specific parameter if existing
+	 * @param paraName name of the parameter
+	 * @return the value or the default value
+	 */
+	public String getParameter(final String paraName, final String defaultValue) {
+		return (this.parameters == null) ? null : ((this.parameters.get(paraName) == null) ? defaultValue : this.parameters.get(paraName));
+	}
 
 	/**
 	 * @return the proxy
@@ -153,72 +180,81 @@ public class BaseConfig {
 	 * @param autoStart
 	 *            the autoStart to set
 	 */
-	public final void setAutoStart(final boolean autoStart) {
+	public BaseConfig setAutoStart(final boolean autoStart) {
 		this.autoStart = autoStart;
+		return this;
 	}
 
 	/**
 	 * @param deployAsWorker
 	 *            the deployAsWorker to set
 	 */
-	public final void setDeployAsWorker(final boolean deployAsWorker) {
+	public BaseConfig setDeployAsWorker(final boolean deployAsWorker) {
 		this.deployAsWorker = deployAsWorker;
+		return this;
 	}
 
 	/**
 	 * @param enabled
 	 *            the enabled to set
 	 */
-	public final void setEnabled(final boolean enabled) {
+	public BaseConfig setEnabled(final boolean enabled) {
 		this.enabled = enabled;
+		return this;
 	}
 
 	/**
 	 * @param parameters
 	 *            the parameters to set
 	 */
-	public final void setParameters(final Map<String, String> parameters) {
+	public BaseConfig setParameters(final Map<String, String> parameters) {
 		this.parameters = parameters;
+		return this;
 	}
 
 	/**
 	 * @param providesRouterExtension
 	 *            the providesRouterExtension to set
 	 */
-	public final void setProvidesRouterExtension(final boolean providesRouterExtension) {
+	public BaseConfig setProvidesRouterExtension(final boolean providesRouterExtension) {
 		this.providesRouterExtension = providesRouterExtension;
+		return this;
 	}
 
 	/**
 	 * @param proxy
 	 *            the proxy to set
 	 */
-	public final void setProxy(final String proxy) {
+	public BaseConfig setProxy(final String proxy) {
 		this.proxy = proxy;
+		return this;
 	}
 
 	/**
 	 * @param proxyPort
 	 *            the proxyPort to set
 	 */
-	public final void setProxyPort(final int proxyPort) {
+	public BaseConfig setProxyPort(final int proxyPort) {
 		this.proxyPort = proxyPort;
+		return this;
 	}
 
 	/**
 	 * @param verticleInstanceCount
 	 *            the verticleInstanceCount to set
 	 */
-	public final void setVerticleInstanceCount(final int verticleInstanceCount) {
+	public BaseConfig setVerticleInstanceCount(final int verticleInstanceCount) {
 		this.verticleInstanceCount = verticleInstanceCount;
+		return this;
 	}
 
 	/**
 	 * @param verticleName
 	 *            the verticleName to set
 	 */
-	public final void setVerticleName(final String verticleName) {
+	public BaseConfig setVerticleName(final String verticleName) {
 		this.verticleName = verticleName;
+		return this;
 	}
 
 }

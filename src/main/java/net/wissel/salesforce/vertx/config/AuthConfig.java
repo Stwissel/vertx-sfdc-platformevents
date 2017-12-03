@@ -73,48 +73,52 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
-	 * @param authName
-	 *            the authName to set
+	 * @return the sfdcPassword
 	 */
-	public final void setAuthName(final String authName) {
-		this.authName = authName;
+	public final String getSfdcPassword() {
+		return this.sfdcPassword;
 	}
 
 	/**
 	 * @return the sfdcUser
 	 */
 	public final String getSfdcUser() {
-		return sfdcUser;
+		return this.sfdcUser;
 	}
 
 	/**
-	 * @return the sfdcPassword
+	 * @param authName
+	 *            the authName to set
 	 */
-	public final String getSfdcPassword() {
-		return sfdcPassword;
+	public final AuthConfig setAuthName(final String authName) {
+		this.authName = authName;
+		return this;
 	}
 
 	/**
 	 * @param serverURL
 	 *            the serverURL to set
 	 */
-	public final void setServerURL(final String serverURL) {
+	public final AuthConfig setServerURL(final String serverURL) {
 		this.serverURL = serverURL;
+		return this;
 	}
 
 	/**
 	 * @param passWord
 	 *            the passWord to set
 	 */
-	public final void setSfdcPassword(final String passWord) {
+	public final AuthConfig setSfdcPassword(final String passWord) {
 		this.sfdcPassword = passWord;
+		return this;
 	}
 
 	/**
 	 * @param userName
 	 *            the userName to set
 	 */
-	public final void setSfdcUser(final String userName) {
+	public final AuthConfig setSfdcUser(final String userName) {
 		this.sfdcUser = userName;
+		return this;
 	}
 }

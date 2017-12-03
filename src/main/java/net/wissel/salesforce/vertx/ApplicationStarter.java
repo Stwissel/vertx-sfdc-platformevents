@@ -63,14 +63,18 @@ import net.wissel.salesforce.vertx.consumer.SFDCConsumer;
 
 /**
  * Main Verticle that loads the entire application and its dependent Verticles
- *
+ * Loads a configuration file in JSON format and loads up to 4 categories of
+ * Verticles - Authentication providers - Listeners (that listen to incoming
+ * events, currently CometD) - Consumers (listen on the eventbus and do
+ * something to the incoming data) - other verticles
+ * 
  * @author stw
  *
  */
 public class ApplicationStarter extends AbstractVerticle {
 
 	/**
-	 * Start Helper
+	 * Start Helper to test in IDE or Command line
 	 *
 	 * @param args
 	 *            - ignored here
@@ -108,6 +112,16 @@ public class ApplicationStarter extends AbstractVerticle {
 
 	}
 
+	/**
+	 * After loading a configuration from the JSON file, this function checks
+	 * for a given number of settings in the environment. Most notably
+	 * user/password/port This allows to keep the configuration in Version
+	 * Control without disclosing credentials. This is in line with the PaaS
+	 * practises to provide credentials on the environment
+	 * 
+	 * @param configCandidate
+	 *            - the JSON object with the initial settings
+	 */
 	private void addParametersFromEnvironment(final JsonObject configCandidate) {
 		// We need the PORT for our http listener once
 		String portCandidate = System.getenv(Constants.CONFIG_PORT);
@@ -139,7 +153,7 @@ public class ApplicationStarter extends AbstractVerticle {
 									c.put(key, candidate);
 								}
 							});
-							
+
 						}
 					});
 				}
@@ -153,7 +167,10 @@ public class ApplicationStarter extends AbstractVerticle {
 	/**
 	 *
 	 * @param bc
-	 *            Base configuration
+	 *            Base configuration as retrieved from JSON config file and
+	 *            environment The verticle gets only its own configuration, not
+	 *            the whole file
+	 * 
 	 * @return Options to load verticle
 	 */
 	private DeploymentOptions getDeploymentOptions(final BaseConfig bc) {
@@ -191,18 +208,31 @@ public class ApplicationStarter extends AbstractVerticle {
 					return;
 				}
 				// Hot reload for config changes
-//				retriever.listen(change -> {
-//					// TODO: implement hot reload
-//				});
+				// retriever.listen(change -> {
+				// // TODO: implement hot reload
+				// });
 			}
 		});
 
 	}
 
+	/**
+	 * Get the file name for the Options File. Default defined in
+	 * Constants.OPTION_FILE_NAME
+	 * 
+	 * @return
+	 */
 	private String getOptionFileName() {
 		return this.config().getString(Constants.OPTION_FILE_NAME, Constants.OPTION_FILE_NAME);
 	}
 
+	/**
+	 * Main rountine to load all verticles with parameters
+	 * 
+	 * @param verticleLoad
+	 *            - a future that completes when all verticles loaded
+	 *            successfully
+	 */
 	private void loadVerticles(final Future<Void> verticleLoad) {
 		@SuppressWarnings("rawtypes")
 		final List<Future> allLoadedVerticles = new ArrayList<Future>();
@@ -321,6 +351,14 @@ public class ApplicationStarter extends AbstractVerticle {
 
 	}
 
+	/**
+	 * Shuts down all verticles that were loaded. Keeps the sequence of first
+	 * shutting down all listeners, so no new data enters then shuts down the
+	 * consumers, so messages can drain out of the bus
+	 * 
+	 * @param stopFuture
+	 *            completes when all verticles are unloaded
+	 */
 	private void shutDownVerticles(final Future<Void> stopFuture) {
 		final EventBus eb = this.getVertx().eventBus();
 
@@ -380,7 +418,10 @@ public class ApplicationStarter extends AbstractVerticle {
 
 	}
 
-	/* Loading of the WEB UI to provide a minimal Admin GUI to watch */
+	/**
+	 * Loading of the API & WEB UI to provide a minimal Admin GUI to watch the
+	 * system. WIP
+	 */
 	private void startWebServer(final Future<Void> startFuture) {
 
 		// Sanitize the parameters and capture cookies / headers
@@ -416,6 +457,11 @@ public class ApplicationStarter extends AbstractVerticle {
 		startFuture.complete();
 	}
 
+	/**
+	 * Handler for the /api endpoint, listing out routes and loaded verticles
+	 * 
+	 * @param ctx
+	 */
 	private void rootHandler(final RoutingContext ctx) {
 		ctx.response().putHeader(Constants.CONTENT_HEADER, Constants.CONTENT_TYPE_JSON);
 		final JsonObject result = new JsonObject().put("RunningSince", Utils.getDateString(this.startDate));
@@ -432,12 +478,22 @@ public class ApplicationStarter extends AbstractVerticle {
 		ctx.response().end(result.encodePrettily());
 	}
 
+	/**
+	 * Ensure proper authentication happens when accessing the GUI
+	 * 
+	 * @param router
+	 */
 	private void setupRouteSecurity(final Router router) {
 		// TODO: Needs fixing
 	}
 
-	// Executes the actual shutdown once one of the shutdown handlers
-	// has accepted the shutdown request
+	/**
+	 * Executes the actual shutdown once one of the shutdown handlers has
+	 * accepted the shutdown request
+	 * 
+	 * @param response
+	 *            Tells the caller some metrics
+	 */
 	private void shutdownExecution(final HttpServerResponse response) {
 		final JsonObject goodby = new JsonObject();
 		goodby.put("Goodby", "It was a pleasure doing business with you");
@@ -468,7 +524,10 @@ public class ApplicationStarter extends AbstractVerticle {
 		}
 	}
 
-	// Use to terminate the application on a server - more caution needes
+	/**
+	 *  Use to terminate the application using a HTTP Post
+	 *  It requires an AdminKey header to work
+	 */
 	private void shutdownHandler(final RoutingContext ctx) {
 		// check for AdminKey header
 		String adminKey = this.config().getString("AdminKey");

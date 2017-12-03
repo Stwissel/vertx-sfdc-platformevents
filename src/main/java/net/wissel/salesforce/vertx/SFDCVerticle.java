@@ -19,77 +19,34 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.salesforce.vertx.config;
+package net.wissel.salesforce.vertx;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.vertx.core.Future;
 
 /**
- * Configuration for consumers listening on event bus messages to act on them
- *
- * @author stw
+ * Interface that needs to be implemented by a Verticle to participate in the
+ * SDFC lifecycle SFDCVerticles load, but don't do anything until they receive a
+ * startListening() command The application starter sends a start listening
+ * signal initially, that a SDFC Verticle can choose to ignore, so it doesn't
+ * work on the initial startup
+ * 
+ * @author swissel
  *
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ConsumerConfig extends BaseConfig {
+public interface SFDCVerticle {
+
+	/** 
+	 * 
+	 * Verticle actually starting to listen to EventBus or incoming messages
+	 * @return self - fluent API
+	 */
+	public SFDCVerticle startListening();
 
 	/**
-	 * Destination to listen to
+	 *  End of listening, typically before unload or interactive mode
+	 * @param stopListenFuture
+	 * @return self - fluent API
 	 */
-	private String eventBusAddress;
-
-	/**
-	 * Which authConfig will provide authorization (if any)
-	 */
-	private String authName = null;
-
-	/**
-	 * Endpoint the consumer serves can be REST, SOAP, SOCKET
-	 */
-	private String url;
-
-	/**
-	 * @return the authName
-	 */
-	public final String getAuthName() {
-		return this.authName;
-	}
-
-	/**
-	 * @return the eventBusAddress
-	 */
-	public final String getEventBusAddress() {
-		return this.eventBusAddress;
-	}
-
-	/**
-	 *
-	 * @return The URL the consumer serves, e.g. REST, WebSocket etc
-	 */
-	public final String getUrl() {
-		return this.url;
-	}
-
-	/**
-	 * @param authName
-	 *            the authName to set
-	 */
-	public final ConsumerConfig setAuthName(final String authName) {
-		this.authName = authName;
-		return this;
-	}
-
-	/**
-	 * @param eventBusAddress
-	 *            the eventBusAddress to set
-	 */
-	public final ConsumerConfig setEventBusAddress(final String eventBusAddress) {
-		this.eventBusAddress = eventBusAddress;
-		return this;
-	}
-
-	public final ConsumerConfig setUrl(final String newURL) {
-		this.url = newURL;
-		return this;
-	}
+	public SFDCVerticle stopListening(final Future<Void> stopListenFuture);
 
 }
