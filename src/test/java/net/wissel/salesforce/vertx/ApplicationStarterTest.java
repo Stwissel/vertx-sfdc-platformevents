@@ -66,7 +66,7 @@ public class ApplicationStarterTest {
 		wco.setTryUseCompression(true);
 		final WebClient client = WebClient.create(this.vertx, wco);
 
-		client.get("http://localhost:8044/api").send(result -> {
+		client.get(8044, "localhost", "/api").send(result -> {
 			if (result.succeeded()) {
 				context.assertEquals(200, result.result().statusCode());
 			} else {
