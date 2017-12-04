@@ -55,6 +55,7 @@ public class JsonExperiments {
 	public static void main(final String[] args) throws IOException {
 		final JsonExperiments j = new JsonExperiments();
 		j.test1();
+		j.test2();
 
 	}
 
@@ -136,5 +137,12 @@ public class JsonExperiments {
 		m.execute(w, scope);
 		w.close();
 
+	}
+	
+	private void test2() {
+		JsonObject jo = new JsonObject("{\"Hero\":\"Peter Pan\", \"Villain\": \"Captain Hook\"}");
+		JsonArray jo1 = new JsonArray("[\"red\",\"blue\",\"green\",\"amber\"]");
+		System.out.println(jo.encodePrettily());
+		System.out.println(jo1.encodePrettily());
 	}
 }

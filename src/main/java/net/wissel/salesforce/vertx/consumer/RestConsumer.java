@@ -21,8 +21,10 @@
  */
 package net.wissel.salesforce.vertx.consumer;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -45,6 +47,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import net.wissel.salesforce.vertx.Constants;
 import net.wissel.salesforce.vertx.SFDCVerticle;
+import net.wissel.salesforce.vertx.Utils;
 import net.wissel.salesforce.vertx.auth.AuthInfo;
 
 /**
@@ -55,7 +58,7 @@ import net.wissel.salesforce.vertx.auth.AuthInfo;
  * @author swissel
  *
  */
-public class JsonRestConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
+public class RestConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
 
 	/**
 	 * Capture retry operations
@@ -64,20 +67,20 @@ public class JsonRestConsumer extends AbstractSDFCConsumer implements SFDCConsum
 	 *
 	 */
 	private class PostRetry {
-		final public JsonObject body;
-
+		final public Buffer body;
 		public int retryCount = 0;
 
 		public PostRetry(final JsonObject content) {
-			this.body = content;
+			this.body = RestConsumer.this.transformBody(content);
 		}
 	}
 
 	// TODO: make retry count and interval configurable
-	private final int retryCount = 10;
+	private final int maxRetryCount = 10;
 	private final Queue<PostRetry> retryBuffer = new LinkedList<>();
 	private AuthInfo authInfo = null;
 	private WebClient client = null;
+	private Mustache mustache = null;
 
 	@Override
 	public SFDCVerticle startListening() {
@@ -148,14 +151,28 @@ public class JsonRestConsumer extends AbstractSDFCConsumer implements SFDCConsum
 
 	/**
 	 * Returns the content type
-	 * 
+	 *
 	 * @return
 	 */
 	private String getContentType() {
 		return this.getConsumerConfig().getParameter(Constants.CONTENT_HEADER, Constants.CONTENT_TYPE_JSON);
 	}
 
-	private String getTemplate() {
+	/**
+	 * @return a Mustache template compiled
+	 */
+	private Mustache getMustache() {
+		if (this.mustache == null) {
+			final FileSystem fs = this.getVertx().fileSystem();
+			final Buffer templateBuffer = fs.readFileBlocking(this.getTemplateName());
+			final MustacheFactory mf = new DefaultMustacheFactory();
+			final ByteArrayInputStream bi = new ByteArrayInputStream(templateBuffer.getBytes());
+			this.mustache = mf.compile(new InputStreamReader(bi), "Transform");
+		}
+		return this.mustache;
+	}
+
+	private String getTemplateName() {
 		return this.getConsumerConfig().getParameter(Constants.PARAM_STYLESHEET);
 	}
 
@@ -190,10 +207,9 @@ public class JsonRestConsumer extends AbstractSDFCConsumer implements SFDCConsum
 	}
 
 	private void postToDestination(final PostRetry payload) {
-		final Buffer bodyBuffer = this.transformBody(payload.body);
 		this.initWebClient();
 		final HttpRequest<Buffer> request = this.initWebPostRequest(this.getConsumerConfig().getUrl());
-		request.sendBuffer(bodyBuffer, result -> {
+		request.sendBuffer(payload.body, result -> {
 			// Retry if it didn't work
 			if (result.failed()) {
 				this.logger.error(result.cause());
@@ -212,7 +228,7 @@ public class JsonRestConsumer extends AbstractSDFCConsumer implements SFDCConsum
 	}
 
 	private void processError(final PostRetry payload) {
-		if (payload.retryCount < this.retryCount) {
+		if (payload.retryCount < this.maxRetryCount) {
 			payload.retryCount++;
 			// TODO: handle failure
 			this.retryBuffer.offer(payload);
@@ -222,22 +238,29 @@ public class JsonRestConsumer extends AbstractSDFCConsumer implements SFDCConsum
 
 	}
 
+	/**
+	 * Turns the JsonObject that came over the wire into a buffer object
+	 * to be used in the HTTP Post. Special twist: if configured the JSONObject
+	 * is run through a {{Mustache}} transformation, so the result can be anything
+	 * JSON, HTML, XML, PlainText, WebForm etc. Allows ultimate flexibility when one
+	 * knows Mustache
+	 * @param Json Object with incoming payload
+	 * @return a Buffer object to be pasted
+	 */
 	private Buffer transformBody(final JsonObject body) {
 		Buffer result = null;
 		if (this.needsTransformation()) {
-			// TODO: Check how JsonObject works for transformations here
-			final FileSystem fs = this.getVertx().fileSystem();
-			final Buffer template = fs.readFileBlocking(this.getTemplate());
-			final MustacheFactory mf = new DefaultMustacheFactory();
-			final Mustache mustache = mf.compile(template.toString());
+			final Mustache mustache = this.getMustache();
 			final ByteArrayOutputStream out = new ByteArrayOutputStream();
 			final PrintWriter pw = new PrintWriter(out);
 			try {
-				mustache.execute(pw, body).flush();
+				mustache.execute(pw, Utils.mappifyJsonObject(body)).flush();
 				pw.close();
+				result = Buffer.buffer(out.toByteArray());
 			} catch (final IOException e) {
 				this.logger.error(e);
-				return Buffer.buffer();
+				// Get back the unchanged body
+				result = body.toBuffer();
 			}
 		} else {
 			result = body.toBuffer();
