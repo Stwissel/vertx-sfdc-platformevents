@@ -510,7 +510,7 @@ public class ApplicationStarter extends AbstractVerticle {
 					this.logger.fatal(fResult.cause());
 					System.exit(-1);
 				}
-				System.out.println("Good by!");
+				this.logger.info("Good by!");
 				this.getVertx().close(handler -> {
 					if (handler.failed()) {
 						this.logger.fatal(handler.cause());

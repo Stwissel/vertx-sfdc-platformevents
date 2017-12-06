@@ -40,7 +40,7 @@ public class ConsoleConsumer extends AbstractSDFCConsumer implements SFDCConsume
 	// Just write out to the console
 	protected void processIncoming(final Message<JsonObject> incomingData) {
 		final JsonObject body = incomingData.body();
-		System.out.println(body.encodePrettily());
+		this.logger.info(body.encodePrettily());
 	}
 
 }

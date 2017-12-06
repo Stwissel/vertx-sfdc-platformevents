@@ -74,7 +74,7 @@ public abstract class AbstractSDFCConsumer extends AbstractSFDCVerticle implemen
 		// Listen on the event bus
 		final EventBus eb = this.vertx.eventBus();
 		this.consumer = eb.consumer(this.getConsumerConfig().getEventBusAddress());
-		System.out.println(this.getClass().getName()+" listening on " + this.consumer.address());
+		this.logger.info(this.getClass().getName()+" listening on " + this.consumer.address());
 		this.consumer.handler(this::processIncoming);
 		// Setup local routes if needed
 		this.addRoutes(this.router);
