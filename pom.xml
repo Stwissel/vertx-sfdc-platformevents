@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.wissel.salesforce</groupId>
 	<artifactId>net.wissel.salesforce.vertx</artifactId>
-	<version>0.1.0</version>
+	<version>0.2.0-SNAPSHOT</version>
 	<name>Vert.x modules for Salesforce</name>
 	<description>Verticles that connect to Salesforce Platform events and API</description>
 

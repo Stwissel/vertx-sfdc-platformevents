@@ -28,6 +28,7 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import net.wissel.salesforce.vertx.AbstractSFDCVerticle;
+import net.wissel.salesforce.vertx.SFDCVerticle;
 import net.wissel.salesforce.vertx.config.ConsumerConfig;
 
 /**
@@ -68,21 +69,22 @@ public abstract class AbstractSDFCConsumer extends AbstractSFDCVerticle implemen
 	protected abstract void processIncoming(final Message<JsonObject> incomingData);
 
 	@Override
-	protected void startListening() {
+	public SFDCVerticle startListening() {
 		this.logger.info("Start listening:" + this.getClass().getName());
 		// Listen on the event bus
 		final EventBus eb = this.vertx.eventBus();
 		this.consumer = eb.consumer(this.getConsumerConfig().getEventBusAddress());
-		System.out.println(this.getClass().getName()+" listening on " + this.consumer.address());
+		this.logger.info(this.getClass().getName()+" listening on " + this.consumer.address());
 		this.consumer.handler(this::processIncoming);
 		// Setup local routes if needed
 		this.addRoutes(this.router);
 		// Done
 		this.listening = true;
+		return this;
 	}
 
 	@Override
-	protected void stopListening(final Future<Void> stopListenFuture) {
+	public SFDCVerticle stopListening(final Future<Void> stopListenFuture) {
 		this.logger.info("Stop listening:" + this.getClass().getName());
 		this.listening = false;
 		if (this.consumer == null) {
@@ -92,6 +94,7 @@ public abstract class AbstractSDFCConsumer extends AbstractSFDCVerticle implemen
 				stopListenFuture.complete();
 			});
 		}
+		return this;
 	}
 
 }

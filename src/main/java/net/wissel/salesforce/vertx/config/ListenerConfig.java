@@ -47,6 +47,18 @@ public class ListenerConfig extends BaseConfig {
 	private String listenSubject;
 
 	/**
+	 * Should the listener send its data to the dedup service or directly to the
+	 * consumers
+	 */
+	private boolean useDedupService = false;
+
+	/**
+	 * The address for the deduplication Service Will be used when
+	 * useDedupService is true;
+	 */
+	private String eventBusDedupAddress;
+
+	/**
 	 * Destination(s) to forward incoming data to
 	 */
 	private Set<String> eventBusAddresses = new HashSet<String>();
@@ -70,6 +82,13 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * @return the eventBusDedupAddress
+	 */
+	public final String getEventBusDedupAddress() {
+		return this.eventBusDedupAddress;
+	}
+
+	/**
 	 * @return the listenSubject
 	 */
 	public final String getListenSubject() {
@@ -86,27 +105,53 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * @return the useDedupService
+	 */
+	public final boolean isUseDedupService() {
+		return this.useDedupService;
+	}
+
+	/**
 	 * @param authName
 	 *            the authName to set
 	 */
-	public final void setAuthName(final String authName) {
+	public final ListenerConfig setAuthName(final String authName) {
 		this.authName = authName;
+		return this;
 	}
 
 	/**
 	 * @param eventBusAddresses
 	 *            the eventBusAddresses to set
 	 */
-	public final void setEventBusAddresses(final Set<String> eventBusAddresses) {
+	public final ListenerConfig setEventBusAddresses(final Set<String> eventBusAddresses) {
 		this.eventBusAddresses = eventBusAddresses;
+		return this;
+	}
+
+	/**
+	 * @param eventBusDedupAddress
+	 *            the eventBusDedupAddress to set
+	 */
+	public final void setEventBusDedupAddress(final String eventBusDedupAddress) {
+		this.eventBusDedupAddress = eventBusDedupAddress;
 	}
 
 	/**
 	 * @param listenSubject
 	 *            the listenSubject to set
 	 */
-	public final void setListenSubject(final String listenSubject) {
+	public final ListenerConfig setListenSubject(final String listenSubject) {
 		this.listenSubject = listenSubject;
+		return this;
+	}
+
+	/**
+	 * @param useDedupService
+	 *            the useDedupService to set
+	 */
+	public final void setUseDedupService(final boolean useDedupService) {
+		this.useDedupService = useDedupService;
 	}
 
 }

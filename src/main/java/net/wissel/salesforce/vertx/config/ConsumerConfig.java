@@ -43,11 +43,9 @@ public class ConsumerConfig extends BaseConfig {
 	private String authName = null;
 
 	/**
-	 * Endpoint the consumer serves
-	 * can be REST, SOAP, SOCKET
+	 * Endpoint the consumer serves can be REST, SOAP, SOCKET
 	 */
 	private String url;
-
 
 	/**
 	 * @return the authName
@@ -63,34 +61,35 @@ public class ConsumerConfig extends BaseConfig {
 		return this.eventBusAddress;
 	}
 
-	
+	/**
+	 *
+	 * @return The URL the consumer serves, e.g. REST, WebSocket etc
+	 */
+	public final String getUrl() {
+		return this.url;
+	}
 
 	/**
 	 * @param authName
 	 *            the authName to set
 	 */
-	public final void setAuthName(final String authName) {
+	public final ConsumerConfig setAuthName(final String authName) {
 		this.authName = authName;
+		return this;
 	}
 
 	/**
 	 * @param eventBusAddress
 	 *            the eventBusAddress to set
 	 */
-	public final void setEventBusAddress(final String eventBusAddress) {
+	public final ConsumerConfig setEventBusAddress(final String eventBusAddress) {
 		this.eventBusAddress = eventBusAddress;
+		return this;
 	}
 
-	/**
-	 * 
-	 * @return The URL the consumer serves, e.g. REST, WebSocket etc
-	 */
-	public final String getUrl() {
-		return this.url;
-	}
-	
-	public final void setUrl(final String newURL) {
+	public final ConsumerConfig setUrl(final String newURL) {
 		this.url = newURL;
+		return this;
 	}
 
 }

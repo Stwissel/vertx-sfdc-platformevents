@@ -28,13 +28,16 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 /**
- * Verticle Blueprint with some default behaviors we use in this application
- * like the undeploy command
- *
+ * Verticle Blueprint with default behaviors we use in this application
+ * - Startup and shutdown support
+ * - ability to listen to a "start listening" command on the event bus
+ * - abstract functions for starting and stopping listening on the Bus or
+ *   the external API
+ *   
  * @author swissel
  *
  */
-public abstract class AbstractSFDCVerticle extends AbstractVerticle {
+public abstract class AbstractSFDCVerticle extends AbstractVerticle implements SFDCVerticle {
 
 	protected boolean shuttingDown = false;
 	protected boolean shutdownCompleted = false;
@@ -132,10 +135,14 @@ public abstract class AbstractSFDCVerticle extends AbstractVerticle {
 		return result;
 	}
 
-	// Verticle actually starting to listen to EventBus or incoming messages
-	protected abstract void startListening();
+	/**
+	 * @see net.wissel.salesforce.vertx.SFDCVerticle#startListening()
+	 */
+	public abstract SFDCVerticle startListening();
 
-	// End of listening, typically before unload or interactive mode
-	protected abstract void stopListening(final Future<Void> stopListenFuture);
+	/**
+	 * @see net.wissel.salesforce.vertx.SFDCVerticle#stopListening(io.vertx.core.Future)
+	 */
+	public abstract SFDCVerticle stopListening(final Future<Void> stopListenFuture);
 
 }

@@ -30,6 +30,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -41,12 +42,13 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import net.wissel.salesforce.vertx.AbstractSFDCVerticle;
 import net.wissel.salesforce.vertx.Constants;
+import net.wissel.salesforce.vertx.SFDCVerticle;
 import net.wissel.salesforce.vertx.Utils;
 import net.wissel.salesforce.vertx.auth.AuthInfo;
 import net.wissel.salesforce.vertx.config.ListenerConfig;
 
 /**
- * @author swissel
+ * @author stw
  *
  */
 public class CometD extends AbstractSFDCVerticle {
@@ -57,6 +59,47 @@ public class CometD extends AbstractSFDCVerticle {
 	private String clientId = null;
 	private int connectCounter = 3;
 	private final Map<String, String> cookies = new HashMap<String, String>();
+
+	@Override
+	public SFDCVerticle startListening() {
+
+		// First get a proper session
+		this.getAuthInfo().setHandler(handler -> {
+			if (handler.succeeded()) {
+				// We got a session
+				this.authInfo = handler.result();
+				// This is where we talk to the API
+				this.step2ActionHandshake();
+			} else {
+				this.logger.fatal(handler.cause());
+			}
+		});
+		this.listening = true;
+		return this;
+	}
+
+	@Override
+	public SFDCVerticle stopListening(final Future<Void> stopListenFuture) {
+		this.shuttingDown = true;
+		if (this.shutdownCompleted) {
+			this.authInfo = null;
+			this.listening = false;
+			stopListenFuture.complete();
+		} else {
+			// We need to wait for the next cycle
+			// There might be an incoming request
+			// We don't want to miss
+			this.getVertx().setTimer(1000, en -> {
+				try {
+					this.stopListening(stopListenFuture);
+				} catch (final Exception e) {
+					this.logger.error(e);
+				}
+			});
+
+		}
+		return this;
+	}
 
 	protected void captureCookies(final List<String> newCookies) {
 		if (newCookies != null) {
@@ -87,16 +130,27 @@ public class CometD extends AbstractSFDCVerticle {
 
 		final JsonObject data = dataChange.getJsonObject("data");
 		final JsonObject payload = data.getJsonObject("payload");
-		// We send it off to the eventbus
+		// We send it off to the eventbus and in any case have the
+		// final destination header set - just in case
 		final EventBus eb = this.getVertx().eventBus();
+		final DeliveryOptions opts = new DeliveryOptions();
 		this.getListenerConfig().getEventBusAddresses().forEach(destination -> {
-			try {
-				eb.publish(destination, payload);
-				this.logger.info("Sending to [" + destination + "]:" + payload.toString());
-			} catch (final Throwable t) {
-				this.logger.error(t.getMessage(), t);
-			}
+			opts.addHeader(Constants.BUS_FINAL_DESTINATION, destination);
 		});
+
+		// Intermediate step for deduplication of messages
+		if (this.useDedupService()) {
+			eb.publish(this.getListenerConfig().getEventBusDedupAddress(), payload, opts);
+		} else {
+			this.getListenerConfig().getEventBusAddresses().forEach(destination -> {
+				try {
+					eb.publish(destination, payload, opts);
+					this.logger.info("Sending to [" + destination + "]:" + payload.toString());
+				} catch (final Throwable t) {
+					this.logger.error(t.getMessage(), t);
+				}
+			});
+		}
 	}
 
 	/**
@@ -113,43 +167,15 @@ public class CometD extends AbstractSFDCVerticle {
 
 	}
 
-	@Override
-	protected void startListening() {
-
-		// First get a proper session
-		this.getAuthInfo().setHandler(handler -> {
-			if (handler.succeeded()) {
-				// We got a session
-				this.authInfo = handler.result();
-				// This is where we talk to the API
-				this.step2ActionHandshake();
-			} else {
-				this.logger.fatal(handler.cause());
-			}
-		});
-		this.listening = true;
-	}
-
-	@Override
-	protected void stopListening(final Future<Void> stopListenFuture) {
-		this.shuttingDown = true;
-		if (this.shutdownCompleted) {
-			this.authInfo = null;
-			this.listening = false;
-			stopListenFuture.complete();
-		} else {
-			// We need to wait for the next cycle
-			// There might be an incoming request
-			// We don't want to miss
-			this.getVertx().setTimer(1000, en -> {
-				try {
-					this.stopListening(stopListenFuture);
-				} catch (final Exception e) {
-					this.logger.error(e);
-				}
-			});
-			
-		}
+	/**
+	 * Should the listener send the message rather to a dedup service or
+	 * directly to the final consumer
+	 * 
+	 * @return true/false
+	 */
+	protected boolean useDedupService() {
+		return this.getListenerConfig().isUseDedupService()
+				&& (this.getListenerConfig().getEventBusDedupAddress() != null);
 	}
 
 	private void captureCookie(final String newCookie) {
@@ -268,16 +294,16 @@ public class CometD extends AbstractSFDCVerticle {
 			this.shutdownCompleted = true;
 			return;
 		}
-			final HttpRequest<Buffer> request = this.initWebPostRequest(Constants.URL_HANDSHAKE);
-			final JsonArray body = this.getHandshakeBody();
+		final HttpRequest<Buffer> request = this.initWebPostRequest(Constants.URL_HANDSHAKE);
+		final JsonArray body = this.getHandshakeBody();
 
-			request.sendJson(body, postReturn -> {
-				if (postReturn.succeeded()) {
-					this.step2ResultHandshake(postReturn.result());
-				} else {
-					this.logger.error(postReturn.cause());
-				}
-			});
+		request.sendJson(body, postReturn -> {
+			if (postReturn.succeeded()) {
+				this.step2ResultHandshake(postReturn.result());
+			} else {
+				this.logger.error(postReturn.cause());
+			}
+		});
 	}
 
 	private void step2ResultHandshake(final HttpResponse<Buffer> postReturn) {
@@ -375,7 +401,7 @@ public class CometD extends AbstractSFDCVerticle {
 			this.shutdownCompleted = true;
 			return;
 		}
-		this.logger.info("Fetch "+ Utils.getDateString(new Date()));
+		this.logger.info("Fetch " + Utils.getDateString(new Date()));
 		final JsonArray body = this.getConnectBody();
 		final HttpRequest<Buffer> request = this.initWebPostRequest(Constants.URL_CONNECT);
 		request.as(BodyCodec.jsonArray()).sendJson(body, this::subscriptionResult);

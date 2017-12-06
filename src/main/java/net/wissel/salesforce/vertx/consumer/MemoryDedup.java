@@ -19,37 +19,43 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.salesforce.vertx;
+package net.wissel.salesforce.vertx.consumer;
 
-public interface Constants {
-	String API_ROOT = "/api";
-	String AUTH_SOAP_LOGIN = "/services/Soap/u/41.0/";
-	String AUTH_SOAP_TEMPLATE = "/logintemplate.xml";	
-	String BUS_START_STOP = "SFDC:CommandLine";
-	String BUS_AUTHREQUEST = "SFDC:Auth:";
-	String CONFIG_AUTHNAME = "authName";
-	String CONFIG_AUTOSTART = "autoStart";
-	String CONFIG_PORT = "Port";
-	String CONTENT_HEADER = "Content-Type";
-	String CONTENT_TYPE_JSON = "application/json;charset=UTF-8";
-	String DEFAULT_AUTH_VERTICLE = "net.wissel.salesforce.vertx.auth.SoapApi";
-	String DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
-	String DEFAULT_LISTENER = "net.wissel.salesforce.vertx.listener.CometD";
-	String DELIMITER = ":";
-	String MESSAGE_ISSTARTUP = "StartupMessage";
-	String MESSAGE_START = "Rock it cowboys";
-	String MESSAGE_STOP = "Party is over";
-	String OPTION_FILE_NAME = "SFDCOptions.json";
-	String PRODUCTION = "login.salesforce.com";
-	String SANDBOX = "test.salesforce.com";
-	int TLS_PORT = 443;	
-	// Silly, but Message headers only take Strings
-	String TRUESTRING = "True";
-	String URL_HANDSHAKE = "/cometd/41.0/handshake";
-	String URL_SUBSCRIBE = "/cometd/41.0/subscribe";
-	String URL_CONNECT = "/cometd/41.0/connect";
-	String AUTH_RESET = "RESET";
-	String PARAM_STYLESHEET = "stylesheet.mustache";
-	String AUTH_HEADER = "Authorization";
-	String BUS_FINAL_DESTINATION = "SFDCFinalDestination";
+import java.util.LinkedList;
+import java.util.Queue;
+
+import io.vertx.core.Future;
+import io.vertx.core.json.JsonObject;
+
+/**
+ * Checks the last 100 messages in memory to be exact duplicates of
+ * each other
+ * @author swissel
+ *
+ */
+public class MemoryDedup extends AbstractSFDCDedupVerticle {
+	
+	private final Queue<String> memoryQueue = new LinkedList<String>();
+	private static final int MAX_MEMBERS = 100;
+
+	/**
+	 * @see net.wissel.salesforce.vertx.consumer.AbstractSFDCDedupVerticle#checkForDuplicate(io.vertx.core.Future, io.vertx.core.json.JsonObject)
+	 */
+	@Override
+	protected void checkForDuplicate(final Future<Void> failIfDuplicate, final JsonObject messageBody) {
+		final String candidate = messageBody.encode();
+		if (this.memoryQueue.contains(candidate)) {
+			// We have a duplicate and fail the future
+			failIfDuplicate.fail("Duplicate");
+		} else {
+			this.memoryQueue.offer(candidate);
+			// Limit the size of the queue
+			while (this.memoryQueue.size() > MAX_MEMBERS) {
+				this.memoryQueue.poll();
+			}
+			failIfDuplicate.complete();
+		}
+
+	}
+
 }

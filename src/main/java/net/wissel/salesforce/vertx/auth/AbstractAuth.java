@@ -27,6 +27,7 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.MessageConsumer;
 import net.wissel.salesforce.vertx.AbstractSFDCVerticle;
 import net.wissel.salesforce.vertx.Constants;
+import net.wissel.salesforce.vertx.SFDCVerticle;
 import net.wissel.salesforce.vertx.config.AuthConfig;
 
 /**
@@ -35,7 +36,7 @@ import net.wissel.salesforce.vertx.config.AuthConfig;
  * @author swissel
  *
  */
-public abstract class AbstractAuth extends AbstractSFDCVerticle {
+public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCVerticle {
 
 	private AuthConfig authConfig = null;
 	private AuthInfo cachedAuthInfo = null;
@@ -66,10 +67,10 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle {
 	}
 
 	@Override
-	protected void startListening() {
+	public SFDCVerticle startListening() {
 		// No need to start this if it is running
 		if (this.listening && (this.consumer != null)) {
-			return;
+			return this;
 		}
 		final EventBus eb = this.getVertx().eventBus();
 		eb.registerDefaultCodec(AuthInfo.class, new AuthInfoCodec());
@@ -106,10 +107,13 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle {
 		});
 		this.logger.info("Start listening:" + this.getClass().getName());
 		this.listening = true;
+		return this;
 	}
-
+	/**
+	 * @see net.wissel.salesforce.vertx.AbstractSFDCVerticle#stopListening(io.vertx.core.Future)
+	 */
 	@Override
-	protected void stopListening(final Future<Void> stopListenFuture) {
+	public SFDCVerticle stopListening(final Future<Void> stopListenFuture) {
 		this.logger.info("Stop listening:" + this.getClass().getName());
 		if (this.consumer != null) {
 			this.consumer.unregister(handler -> {
@@ -124,8 +128,13 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle {
 			this.loginFailed = false;
 			stopListenFuture.complete();
 		}
+		return this;
 	}
 
+	/**
+	 * Gets the AuthConfig concrete object from the JSON config
+	 * @return
+	 */
 	protected AuthConfig getAuthConfig() {
 		if (this.authConfig == null) {
 			this.authConfig = this.config().mapTo(AuthConfig.class);

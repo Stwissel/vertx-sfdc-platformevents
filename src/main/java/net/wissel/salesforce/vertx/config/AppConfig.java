@@ -48,24 +48,29 @@ public class AppConfig {
 	public int port = 8044; // Our WebServer Port
 
 	/* Convenience methods */
-	public final void addAuthConfig(final AuthConfig authConf) {
+	public final AppConfig addAuthConfig(final AuthConfig authConf) {
 		this.authConfigurations.add(authConf);
+		return this;
 	}
 
-	public final void addConsumerConfig(final ConsumerConfig consConf) {
+	public final AppConfig addConsumerConfig(final ConsumerConfig consConf) {
 		this.consumerConfigurations.add(consConf);
+		return this;
 	}
 
-	public final void addListenerConfig(final ListenerConfig listConf) {
+	public final AppConfig addListenerConfig(final ListenerConfig listConf) {
 		this.listenerConfigurations.add(listConf);
+		return this;
 	}
 
-	public final void addParameter(final String key, final String value) {
+	public final AppConfig addParameter(final String key, final String value) {
 		this.parameters.put(key, value);
+		return this;
 	}
 
-	public final void addVerticleConfig(final String vName, final Map<String, Object> params) {
+	public final AppConfig addVerticleConfig(final String vName, final Map<String, Object> params) {
 		this.verticlesToLoad.put(vName, params);
+		return this;
 	}
 
 }
