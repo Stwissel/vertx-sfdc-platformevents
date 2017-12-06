@@ -20,7 +20,14 @@
  * ========================================================================== *
  */
 /**
- * @author swissel
+ * Consumers process what the listeners put on the event bus
+ * They might put their processing result back on the bus too
+ * to process it further.
+ * 
+ * Special mention: DedupVerticle: filters out duplicate messages
+ *                  good for restart of a queue or concurrent listeners
+ * 
+ * @author stw
  *
  */
 package net.wissel.salesforce.vertx.consumer;

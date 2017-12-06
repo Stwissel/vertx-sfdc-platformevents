@@ -30,6 +30,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -47,7 +48,7 @@ import net.wissel.salesforce.vertx.auth.AuthInfo;
 import net.wissel.salesforce.vertx.config.ListenerConfig;
 
 /**
- * @author swissel
+ * @author stw
  *
  */
 public class CometD extends AbstractSFDCVerticle {
@@ -58,61 +59,6 @@ public class CometD extends AbstractSFDCVerticle {
 	private String clientId = null;
 	private int connectCounter = 3;
 	private final Map<String, String> cookies = new HashMap<String, String>();
-
-	protected void captureCookies(final List<String> newCookies) {
-		if (newCookies != null) {
-			for (final String newCookie : newCookies) {
-				this.captureCookie(newCookie);
-			}
-		}
-	}
-
-	protected ListenerConfig getListenerConfig() {
-		if (this.listenerConfig == null) {
-			this.listenerConfig = this.config().mapTo(ListenerConfig.class);
-		}
-		return this.listenerConfig;
-	}
-
-	protected synchronized int getNextCounter() {
-		// Resetting the counter for super long running
-		// processes to prevent overflow
-		if (this.connectCounter == Integer.MAX_VALUE) {
-			this.connectCounter = 0;
-		}
-		return this.connectCounter++;
-	}
-
-	/* Signal the results to the eventbus */
-	protected void processOneResult(final JsonObject dataChange) {
-
-		final JsonObject data = dataChange.getJsonObject("data");
-		final JsonObject payload = data.getJsonObject("payload");
-		// We send it off to the eventbus
-		final EventBus eb = this.getVertx().eventBus();
-		this.getListenerConfig().getEventBusAddresses().forEach(destination -> {
-			try {
-				eb.publish(destination, payload);
-				this.logger.info("Sending to [" + destination + "]:" + payload.toString());
-			} catch (final Throwable t) {
-				this.logger.error(t.getMessage(), t);
-			}
-		});
-	}
-
-	/**
-	 * This is where the data leaves the verticle onto the Bus
-	 *
-	 * @param receivedData
-	 *            JSON data
-	 */
-	protected void processReceivedData(final JsonArray receivedData) {
-		// The last element in the Array is the all over status
-		for (int i = 0; i < (receivedData.size() - 1); i++) {
-			this.processOneResult(receivedData.getJsonObject(i));
-		}
-
-	}
 
 	@Override
 	public SFDCVerticle startListening() {
@@ -150,9 +96,86 @@ public class CometD extends AbstractSFDCVerticle {
 					this.logger.error(e);
 				}
 			});
-			
+
 		}
 		return this;
+	}
+
+	protected void captureCookies(final List<String> newCookies) {
+		if (newCookies != null) {
+			for (final String newCookie : newCookies) {
+				this.captureCookie(newCookie);
+			}
+		}
+	}
+
+	protected ListenerConfig getListenerConfig() {
+		if (this.listenerConfig == null) {
+			this.listenerConfig = this.config().mapTo(ListenerConfig.class);
+		}
+		return this.listenerConfig;
+	}
+
+	protected synchronized int getNextCounter() {
+		// Resetting the counter for super long running
+		// processes to prevent overflow
+		if (this.connectCounter == Integer.MAX_VALUE) {
+			this.connectCounter = 0;
+		}
+		return this.connectCounter++;
+	}
+
+	/* Signal the results to the eventbus */
+	protected void processOneResult(final JsonObject dataChange) {
+
+		final JsonObject data = dataChange.getJsonObject("data");
+		final JsonObject payload = data.getJsonObject("payload");
+		// We send it off to the eventbus and in any case have the
+		// final destination header set - just in case
+		final EventBus eb = this.getVertx().eventBus();
+		final DeliveryOptions opts = new DeliveryOptions();
+		this.getListenerConfig().getEventBusAddresses().forEach(destination -> {
+			opts.addHeader(Constants.BUS_FINAL_DESTINATION, destination);
+		});
+
+		// Intermediate step for deduplication of messages
+		if (this.useDedupService()) {
+			eb.publish(this.getListenerConfig().getEventBusDedupAddress(), payload, opts);
+		} else {
+			this.getListenerConfig().getEventBusAddresses().forEach(destination -> {
+				try {
+					eb.publish(destination, payload, opts);
+					this.logger.info("Sending to [" + destination + "]:" + payload.toString());
+				} catch (final Throwable t) {
+					this.logger.error(t.getMessage(), t);
+				}
+			});
+		}
+	}
+
+	/**
+	 * This is where the data leaves the verticle onto the Bus
+	 *
+	 * @param receivedData
+	 *            JSON data
+	 */
+	protected void processReceivedData(final JsonArray receivedData) {
+		// The last element in the Array is the all over status
+		for (int i = 0; i < (receivedData.size() - 1); i++) {
+			this.processOneResult(receivedData.getJsonObject(i));
+		}
+
+	}
+
+	/**
+	 * Should the listener send the message rather to a dedup service or
+	 * directly to the final consumer
+	 * 
+	 * @return true/false
+	 */
+	protected boolean useDedupService() {
+		return this.getListenerConfig().isUseDedupService()
+				&& (this.getListenerConfig().getEventBusDedupAddress() != null);
 	}
 
 	private void captureCookie(final String newCookie) {
@@ -271,16 +294,16 @@ public class CometD extends AbstractSFDCVerticle {
 			this.shutdownCompleted = true;
 			return;
 		}
-			final HttpRequest<Buffer> request = this.initWebPostRequest(Constants.URL_HANDSHAKE);
-			final JsonArray body = this.getHandshakeBody();
+		final HttpRequest<Buffer> request = this.initWebPostRequest(Constants.URL_HANDSHAKE);
+		final JsonArray body = this.getHandshakeBody();
 
-			request.sendJson(body, postReturn -> {
-				if (postReturn.succeeded()) {
-					this.step2ResultHandshake(postReturn.result());
-				} else {
-					this.logger.error(postReturn.cause());
-				}
-			});
+		request.sendJson(body, postReturn -> {
+			if (postReturn.succeeded()) {
+				this.step2ResultHandshake(postReturn.result());
+			} else {
+				this.logger.error(postReturn.cause());
+			}
+		});
 	}
 
 	private void step2ResultHandshake(final HttpResponse<Buffer> postReturn) {
@@ -378,7 +401,7 @@ public class CometD extends AbstractSFDCVerticle {
 			this.shutdownCompleted = true;
 			return;
 		}
-		this.logger.info("Fetch "+ Utils.getDateString(new Date()));
+		this.logger.info("Fetch " + Utils.getDateString(new Date()));
 		final JsonArray body = this.getConnectBody();
 		final HttpRequest<Buffer> request = this.initWebPostRequest(Constants.URL_CONNECT);
 		request.as(BodyCodec.jsonArray()).sendJson(body, this::subscriptionResult);

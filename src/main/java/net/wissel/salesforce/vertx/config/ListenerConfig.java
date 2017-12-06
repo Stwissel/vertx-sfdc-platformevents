@@ -47,6 +47,18 @@ public class ListenerConfig extends BaseConfig {
 	private String listenSubject;
 
 	/**
+	 * Should the listener send its data to the dedup service or directly to the
+	 * consumers
+	 */
+	private boolean useDedupService = false;
+
+	/**
+	 * The address for the deduplication Service Will be used when
+	 * useDedupService is true;
+	 */
+	private String eventBusDedupAddress;
+
+	/**
 	 * Destination(s) to forward incoming data to
 	 */
 	private Set<String> eventBusAddresses = new HashSet<String>();
@@ -70,6 +82,13 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * @return the eventBusDedupAddress
+	 */
+	public final String getEventBusDedupAddress() {
+		return this.eventBusDedupAddress;
+	}
+
+	/**
 	 * @return the listenSubject
 	 */
 	public final String getListenSubject() {
@@ -83,6 +102,13 @@ public class ListenerConfig extends BaseConfig {
 	public int getVerticleInstanceCount() {
 		// There only can be one listener or we get double eventa
 		return 1;
+	}
+
+	/**
+	 * @return the useDedupService
+	 */
+	public final boolean isUseDedupService() {
+		return this.useDedupService;
 	}
 
 	/**
@@ -104,12 +130,28 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * @param eventBusDedupAddress
+	 *            the eventBusDedupAddress to set
+	 */
+	public final void setEventBusDedupAddress(final String eventBusDedupAddress) {
+		this.eventBusDedupAddress = eventBusDedupAddress;
+	}
+
+	/**
 	 * @param listenSubject
 	 *            the listenSubject to set
 	 */
 	public final ListenerConfig setListenSubject(final String listenSubject) {
 		this.listenSubject = listenSubject;
 		return this;
+	}
+
+	/**
+	 * @param useDedupService
+	 *            the useDedupService to set
+	 */
+	public final void setUseDedupService(final boolean useDedupService) {
+		this.useDedupService = useDedupService;
 	}
 
 }
