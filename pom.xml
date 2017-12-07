@@ -3,12 +3,20 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.wissel.salesforce</groupId>
 	<artifactId>net.wissel.salesforce.vertx</artifactId>
-	<version>0.2.0-SNAPSHOT</version>
+	<version>0.2.1-SNAPSHOT</version>
 	<name>Vert.x modules for Salesforce</name>
 	<description>Verticles that connect to Salesforce Platform events and API</description>
+	<url>https://stwissel.github.io/vertx-sfdc-platformevents</url>
+	<packaging>pom</packaging>
+
+	<organization>
+		<name>Salesforce Inc</name>
+		<url>https://www.salesforce.com/</url>
+	</organization>
 
 	<properties>
 		<!-- Software versions -->
+		<project.autorelease>false</project.autorelease>
 		<java.version>1.8</java.version>
 		<vertx.version>3.5.0</vertx.version>
 		<joda.version>2.9.9</joda.version>
@@ -60,157 +68,14 @@
 		</developer>
 	</developers>
 
-	<build>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-			</resource>
-		</resources>
-
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.5.1</version>
-				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<artifactId>maven-release-plugin</artifactId>
-				<version>2.5.3</version>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>2.2.1</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-gpg-plugin</artifactId>
-				<version>1.5</version>
-				<executions>
-					<execution>
-						<id>sign-artifacts</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>sign</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.7</version>
-				<extensions>true</extensions>
-				<configuration>
-					<serverId>ossrh</serverId>
-					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-					<!-- Set this to true and the release will automatically proceed and 
-						sync to Central Repository will follow -->
-					<autoReleaseAfterClose>false</autoReleaseAfterClose>
-				</configuration>
-			</plugin>
-
-		</plugins>
-	</build>
-
-	<dependencies>
-
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-web-client</artifactId>
-			<version>${vertx.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-web</artifactId>
-			<version>${vertx.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-core</artifactId>
-			<version>${vertx.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-config</artifactId>
-			<version>${vertx.version}</version>
-		</dependency>
-
-
-		<!-- 3rd party libraries (outside vert.x) -->
-		<dependency>
-			<groupId>joda-time</groupId>
-			<artifactId>joda-time</artifactId>
-			<version>${joda.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.github.spullara.mustache.java</groupId>
-			<artifactId>compiler</artifactId>
-			<version>${mustache.version}</version>
-		</dependency>
-
-		<!-- Test dependencies -->
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-unit</artifactId>
-			<version>${vertx.version}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
-			<scope>test</scope>
-		</dependency>
-		
-		<!-- Create random text, so it is more fun -->
-		<dependency>
-			<groupId>com.thedeanda</groupId>
-			<artifactId>lorem</artifactId>
-			<version>${lorem.version}</version>
-			<scope>test</scope>
-		</dependency>
-
-	</dependencies>
-
-	<url>https://stwissel.github.io/vertx-sfdc-platformevents</url>
 	<ciManagement>
 		<system>Codeship</system>
 		<url>http://codeship.com/</url>
 	</ciManagement>
+
+	<modules>
+		<module>sfdc-core</module>
+		<module>sfdc-redis</module>
+	</modules>
+
 </project>
