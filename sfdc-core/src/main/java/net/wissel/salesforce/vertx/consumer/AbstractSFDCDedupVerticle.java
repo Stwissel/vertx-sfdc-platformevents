@@ -21,8 +21,12 @@
  */
 package net.wissel.salesforce.vertx.consumer;
 
+import java.util.List;
+
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
+import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -46,13 +50,19 @@ public abstract class AbstractSFDCDedupVerticle extends AbstractSDFCConsumer {
 	@Override
 	protected void processIncoming(final Message<JsonObject> incomingData) {
 		final MultiMap headers = incomingData.headers();
-		final String finalDestination = headers.get(Constants.BUS_FINAL_DESTINATION);
-		if (finalDestination != null) {
+		final List<String> finalDestination = headers.getAll(Constants.BUS_FINAL_DESTINATION);
+		if (finalDestination != null && !finalDestination.isEmpty()) {
 			final JsonObject j = incomingData.body();
+			// Forwarding the original headers
+			final DeliveryOptions dOpts = new DeliveryOptions();
+			dOpts.setHeaders(headers);
 			Future<Void> duplicate = Future.future(f -> {
 				if (f.succeeded()) {
-					// Forwarding it to where it came from
-					this.getVertx().eventBus().send(finalDestination, j);
+					// Forwarding it to where it should go
+					EventBus eb = this.getVertx().eventBus();
+					finalDestination.forEach(d -> {
+						eb.send(d, j, dOpts);
+					});			
 				} else {
 					this.logger.info("Dropped duplicate Object:"+String.valueOf(j));
 				}
