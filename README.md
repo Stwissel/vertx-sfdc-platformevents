@@ -6,8 +6,8 @@ Collection of verticles that enable interaction with the Salesforce API
 
 ## Current released version
 
-The current released version is `0.1.0`
-There is a snapshot available as `0.2.1-Snapshot`
+The current released version is `0.2.4`<br />
+Development might have newer snapshots
 
 ## Available Verticles
 
@@ -27,10 +27,12 @@ Add this dependencies to your `pom.xml`:
 <dependency>
 	<groupId>net.wissel.salesforce</groupId>
 	<artifactId>net.wissel.salesforce.vertx</artifactId>
-	<version>0.1.0</version>
+	<version>0.2.4</version>
 </dependency>
 ```
 Check the [full documentation](https://stwissel.github.io/vertx-sfdc-platformevents)!
+
+Artifacts on [Maven Central](https://search.maven.org/#search%7Cga%7C1%7Ca%3A%22net.wissel.salesforce.vertx%22)
 
 ## Issues and feedback
 
