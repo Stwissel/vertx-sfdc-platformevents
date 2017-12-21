@@ -1,0 +1,24 @@
+title Salesforce Vert.x integration
+participant SFDC
+participant Main
+participant Listener
+participant Dedup
+participant Consumer
+participant Auth
+participant External
+Main->Auth:Load
+Main->Consumer:Load
+Main->Dedup:Load
+Main->Listener:Load
+Main->Consumer:Start Listening
+Consumer->Main: Started
+Main->Listener:Start Listening
+Listener->Auth:Request Credentials
+Auth->Listener:Credentials
+Listener->SFDC: CometD Subscription
+Listener->Main: Started
+note right of Listener: Data flow starts
+SFDC->Listener: Platform events
+Listener->Dedup: Eventbus data
+Dedup->Consumer: Eventbus data
+Consumer->External: Data propagation

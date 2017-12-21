@@ -1,15 +1,25 @@
 # Salesforce vert.x integration
 
 Collection of verticles that enable interaction with the Salesforce API.
+[ ![Codeship Status for Stwissel/vertx-sfdc-platformevents](https://app.codeship.com/projects/65890500-b1cd-0135-81e1-7645507f84f6/status?branch=master)](https://app.codeship.com/projects/257955)
+
+## Overview
+![Flow of SFDC Verticles](flow.png)
+
+## Detail pages
+- [Eventbus usage](eventbus.md)
+- [Authentication and Authorization](auth.md)
+- [Configuration and Setup](configure.md)
+- [Event deduplication](dedup.md)
 
 ## Available Verticles
-
 - [Authentication Verticles](verticles/auth.md)
 - [Subscription to platform events Verticles](verticles/platform.md)
 - [Send result to console Verticle](verticles/console.md)
 - [Send result to websocket Verticle](verticles/websocket.md)
 - [Main/Setup Verticle](verticles/main.md)
 - [Deduplication Verticles](verticles/dedup.md)
+
 ## Write your own
 - [Listeners](contribute/listener.md)
 - [Deduplication](contribute/dedup.md)
@@ -24,7 +34,7 @@ The SFDC verticles make heavy use of the [eventbus](eventbus.md).
 
  The authentication verticles listen to the [eventbus](eventbus.md) to provide the HTTP header and destination server for listener or consumer verticles. Listener or consumer verticles are shielded from the details of authentication/authorization
 
- The listeners publish their received data onto the [eventbus](eventbus.md). They either use the configured destination address or the address of a [deduplication service](deduplication.md), which prevents identical events from being forwarded to consumers twice.
+ The listeners publish their received data onto the [eventbus](eventbus.md). They either use the configured destination address or the address of a [deduplication service](dedup.md), which prevents identical events from being forwarded to consumers twice.
 
  Last not least: the main verticle uses the [eventbus](eventbus.md) to signal the verticles to stop listening. This allows to shutdown the listeners and let the bus drain from messages before shutting down.
 
