@@ -133,7 +133,7 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 
 	/**
 	 * Gets the AuthConfig concrete object from the JSON config
-	 * @return
+	 * @return the auth config
 	 */
 	protected AuthConfig getAuthConfig() {
 		if (this.authConfig == null) {

@@ -44,7 +44,7 @@ public interface SFDCVerticle {
 
 	/**
 	 *  End of listening, typically before unload or interactive mode
-	 * @param stopListenFuture
+	 * @param stopListenFuture Indicator when stop listening concluded
 	 * @return self - fluent API
 	 */
 	public SFDCVerticle stopListening(final Future<Void> stopListenFuture);

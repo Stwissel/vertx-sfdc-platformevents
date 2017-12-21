@@ -63,6 +63,11 @@ public class ListenerConfig extends BaseConfig {
 	 */
 	private Set<String> eventBusAddresses = new HashSet<String>();
 
+	/**
+	 *
+	 * @param address
+	 *            new Eventbus address to use
+	 */
 	public void addEventBusAddress(final String address) {
 		this.eventBusAddresses.add(address);
 	}
@@ -114,6 +119,7 @@ public class ListenerConfig extends BaseConfig {
 	/**
 	 * @param authName
 	 *            the authName to set
+	 * @return fluid ListenerConfig
 	 */
 	public final ListenerConfig setAuthName(final String authName) {
 		this.authName = authName;
@@ -123,6 +129,7 @@ public class ListenerConfig extends BaseConfig {
 	/**
 	 * @param eventBusAddresses
 	 *            the eventBusAddresses to set
+	 * @return fluid ListenerConfig
 	 */
 	public final ListenerConfig setEventBusAddresses(final Set<String> eventBusAddresses) {
 		this.eventBusAddresses = eventBusAddresses;
@@ -132,14 +139,17 @@ public class ListenerConfig extends BaseConfig {
 	/**
 	 * @param eventBusDedupAddress
 	 *            the eventBusDedupAddress to set
+	 * @return fluid ListenerConfig
 	 */
-	public final void setEventBusDedupAddress(final String eventBusDedupAddress) {
+	public final ListenerConfig setEventBusDedupAddress(final String eventBusDedupAddress) {
 		this.eventBusDedupAddress = eventBusDedupAddress;
+		return this;
 	}
 
 	/**
 	 * @param listenSubject
 	 *            the listenSubject to set
+	 * @return fluid ListenerConfig
 	 */
 	public final ListenerConfig setListenSubject(final String listenSubject) {
 		this.listenSubject = listenSubject;
@@ -149,9 +159,11 @@ public class ListenerConfig extends BaseConfig {
 	/**
 	 * @param useDedupService
 	 *            the useDedupService to set
+	 * @return fluid ListenerConfig
 	 */
-	public final void setUseDedupService(final boolean useDedupService) {
+	public final ListenerConfig setUseDedupService(final boolean useDedupService) {
 		this.useDedupService = useDedupService;
+		return this;
 	}
 
 }

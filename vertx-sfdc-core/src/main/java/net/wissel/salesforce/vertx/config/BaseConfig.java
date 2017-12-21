@@ -87,37 +87,35 @@ public class BaseConfig {
 	}
 
 	/**
-	 * @return the parameters
-	 */
-	public Map<String, String> getParameters() {
-		return this.parameters;
-	}
-	
-	/**
-	 * Was an additional parameter provided in the configuration
-	 * @param paraName
-	 * @return
-	 */
-	public boolean hasParameter(final String paraName) {
-		return (this.parameters != null && this.parameters.containsKey(paraName));
-	}
-	
-	/** 
 	 * Returns a specific parameter if existing
-	 * @param paraName name of the parameter
+	 * 
+	 * @param paraName
+	 *            name of the parameter
 	 * @return the value or null
 	 */
 	public String getParameter(final String paraName) {
 		return (this.parameters == null) ? null : this.parameters.get(paraName);
 	}
-	
-	/** 
+
+	/**
 	 * Returns a specific parameter if existing
-	 * @param paraName name of the parameter
+	 * 
+	 * @param paraName
+	 *            name of the parameter
+	 * @param defaultValue
+	 *            result if parameter doesn't exist
 	 * @return the value or the default value
 	 */
 	public String getParameter(final String paraName, final String defaultValue) {
-		return (this.parameters == null) ? null : ((this.parameters.get(paraName) == null) ? defaultValue : this.parameters.get(paraName));
+		return (this.parameters == null) ? null
+				: ((this.parameters.get(paraName) == null) ? defaultValue : this.parameters.get(paraName));
+	}
+
+	/**
+	 * @return the parameters
+	 */
+	public Map<String, String> getParameters() {
+		return this.parameters;
 	}
 
 	/**
@@ -146,6 +144,17 @@ public class BaseConfig {
 	 */
 	public String getVerticleName() {
 		return this.verticleName;
+	}
+
+	/**
+	 * Was an additional parameter provided in the configuration
+	 * 
+	 * @param paraName
+	 *            name to check
+	 * @return true/false if parameter exists
+	 */
+	public boolean hasParameter(final String paraName) {
+		return ((this.parameters != null) && this.parameters.containsKey(paraName));
 	}
 
 	/**
@@ -179,6 +188,7 @@ public class BaseConfig {
 	/**
 	 * @param autoStart
 	 *            the autoStart to set
+	 * @return BaseConfig fluid
 	 */
 	public BaseConfig setAutoStart(final boolean autoStart) {
 		this.autoStart = autoStart;
@@ -188,6 +198,7 @@ public class BaseConfig {
 	/**
 	 * @param deployAsWorker
 	 *            the deployAsWorker to set
+	 * @return BaseConfig fluid
 	 */
 	public BaseConfig setDeployAsWorker(final boolean deployAsWorker) {
 		this.deployAsWorker = deployAsWorker;
@@ -197,6 +208,7 @@ public class BaseConfig {
 	/**
 	 * @param enabled
 	 *            the enabled to set
+	 * @return BaseConfig fluid
 	 */
 	public BaseConfig setEnabled(final boolean enabled) {
 		this.enabled = enabled;
@@ -206,6 +218,7 @@ public class BaseConfig {
 	/**
 	 * @param parameters
 	 *            the parameters to set
+	 * @return BaseConfig fluid
 	 */
 	public BaseConfig setParameters(final Map<String, String> parameters) {
 		this.parameters = parameters;
@@ -215,6 +228,7 @@ public class BaseConfig {
 	/**
 	 * @param providesRouterExtension
 	 *            the providesRouterExtension to set
+	 * @return BaseConfig fluid
 	 */
 	public BaseConfig setProvidesRouterExtension(final boolean providesRouterExtension) {
 		this.providesRouterExtension = providesRouterExtension;
@@ -224,6 +238,7 @@ public class BaseConfig {
 	/**
 	 * @param proxy
 	 *            the proxy to set
+	 * @return BaseConfig fluid
 	 */
 	public BaseConfig setProxy(final String proxy) {
 		this.proxy = proxy;
@@ -231,24 +246,26 @@ public class BaseConfig {
 	}
 
 	/**
-	 * @param proxy
-	 *            the proxy to set
+	 * @param appConfig
+	 *            the appConfig with proxy information
+	 * @return BaseConfig fluid
 	 */
 	public BaseConfig setProxyFromAppConfig(final AppConfig appConfig) {
-		if (this.proxy == null && appConfig.proxy != null) {
+		if ((this.proxy == null) && (appConfig.proxy != null)) {
 			this.proxy = appConfig.proxy;
 		}
 
-		if (this.proxyPort == 0 && appConfig.proxyPort != 0) {
+		if ((this.proxyPort == 0) && (appConfig.proxyPort != 0)) {
 			this.proxyPort = appConfig.proxyPort;
 		}
-		
+
 		return this;
 	}
 
 	/**
 	 * @param proxyPort
 	 *            the proxyPort to set
+	 * @return BaseConfig fluid
 	 */
 	public BaseConfig setProxyPort(final int proxyPort) {
 		this.proxyPort = proxyPort;
@@ -258,6 +275,7 @@ public class BaseConfig {
 	/**
 	 * @param verticleInstanceCount
 	 *            the verticleInstanceCount to set
+	 * @return BaseConfig fluid
 	 */
 	public BaseConfig setVerticleInstanceCount(final int verticleInstanceCount) {
 		this.verticleInstanceCount = verticleInstanceCount;
@@ -267,6 +285,7 @@ public class BaseConfig {
 	/**
 	 * @param verticleName
 	 *            the verticleName to set
+	 * @return BaseConfig fluid
 	 */
 	public BaseConfig setVerticleName(final String verticleName) {
 		this.verticleName = verticleName;

@@ -115,6 +115,7 @@ public class AuthConfig extends BaseConfig {
 	/**
 	 * @param authName
 	 *            the authName to set
+	 * @return AuthConfig fluid
 	 */
 	public final AuthConfig setAuthName(final String authName) {
 		this.authName = authName;
@@ -124,22 +125,27 @@ public class AuthConfig extends BaseConfig {
 	/**
 	 * @param consumerSecret
 	 *            the consumerSecret to set
+	 * @return AuthConfig fluid
 	 */
-	public final void setConsumerSecret(final String consumerSecret) {
+	public final AuthConfig setConsumerSecret(final String consumerSecret) {
 		this.consumerSecret = consumerSecret;
+		return this;
 	}
 
 	/**
 	 * @param consumerToken
 	 *            the consumerToken to set
+	 * @return AuthConfig fluid
 	 */
-	public final void setConsumerToken(final String consumerToken) {
+	public final AuthConfig setConsumerToken(final String consumerToken) {
 		this.consumerToken = consumerToken;
+		return this;
 	}
 
 	/**
 	 * @param serverURL
 	 *            the serverURL to set
+	 * @return AuthConfig fluid
 	 */
 	public final AuthConfig setServerURL(final String serverURL) {
 		this.serverURL = serverURL;
@@ -149,6 +155,7 @@ public class AuthConfig extends BaseConfig {
 	/**
 	 * @param passWord
 	 *            the passWord to set
+	 * @return AuthConfig fluid
 	 */
 	public final AuthConfig setSfdcPassword(final String passWord) {
 		this.sfdcPassword = passWord;
@@ -158,6 +165,7 @@ public class AuthConfig extends BaseConfig {
 	/**
 	 * @param userName
 	 *            the userName to set
+	 * @return AuthConfig fluid
 	 */
 	public final AuthConfig setSfdcUser(final String userName) {
 		this.sfdcUser = userName;

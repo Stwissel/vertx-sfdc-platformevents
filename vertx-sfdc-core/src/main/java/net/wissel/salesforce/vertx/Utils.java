@@ -41,8 +41,8 @@ public class Utils {
 	/**
 	 * Standard way to deal with date
 	 *
-	 * @param date
-	 * @return
+	 * @param date a java date
+	 * @return a formatted date string
 	 */
 	public static String getDateString(final Date date) {
 		final SimpleDateFormat sdf = new SimpleDateFormat(Constants.DEFAULT_DATE_FORMAT);
