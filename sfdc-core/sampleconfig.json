@@ -2,6 +2,7 @@
     "authConfigurations": [
     {
     "authName": "default",
+    "instanceName": "default",
     "verticleName": "net.wissel.salesforce.vertx.auth.SoapApi",
     "serverURL": "login.salesforce.com",
     "sfdcUser": "User",
@@ -11,6 +12,7 @@
     "listenerConfigurations": [
     {
         "verticleName": "net.wissel.salesforce.vertx.listener.CometD",
+        "instanceName": "DataChange",
         "verticleInstanceCount": 1,
         "deployAsWorker": false,
         "autoStart": true,
@@ -27,6 +29,7 @@
     "consumerConfigurations": [
     {
             "verticleName": "net.wissel.salesforce.vertx.consumer.WebSocketConsumer",
+            "instanceName": "SampleSocket",
             "eventBusAddress": "SFDC:SampleEvents",
             "deployAsWorker": false,
             "autoStart": true,
@@ -39,6 +42,7 @@
         },
         {
             "verticleName": "net.wissel.salesforce.vertx.consumer.ConsoleConsumer",
+            "instanceName": "SampleConsole"
             "eventBusAddress": "SFDC:SampleEvents",
             "deployAsWorker": false,
             "autoStart": true,
