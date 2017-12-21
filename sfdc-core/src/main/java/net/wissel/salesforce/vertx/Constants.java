@@ -22,11 +22,16 @@
 package net.wissel.salesforce.vertx;
 
 public interface Constants {
+	int TLS_PORT = 443;	
 	String API_ROOT = "/api";
+	String AUTH_HEADER = "Authorization";
+	String AUTH_RESET = "RESET";
 	String AUTH_SOAP_LOGIN = "/services/Soap/u/41.0/";
-	String AUTH_SOAP_TEMPLATE = "/logintemplate.xml";	
-	String BUS_START_STOP = "SFDC:CommandLine";
+	String AUTH_SOAP_TEMPLATE = "/logintemplate.xml";
+	// Messagebus constants	
 	String BUS_AUTHREQUEST = "SFDC:Auth:";
+	String BUS_FINAL_DESTINATION = "SFDCFinalDestination";
+	String BUS_START_STOP = "SFDC:CommandLine";
 	String CONFIG_AUTHNAME = "authName";
 	String CONFIG_AUTOSTART = "autoStart";
 	String CONFIG_PORT = "Port";
@@ -40,16 +45,11 @@ public interface Constants {
 	String MESSAGE_START = "Rock it cowboys";
 	String MESSAGE_STOP = "Party is over";
 	String OPTION_FILE_NAME = "SFDCOptions.json";
+	String PARAM_STYLESHEET = "stylesheet.mustache";
 	String PRODUCTION = "login.salesforce.com";
 	String SANDBOX = "test.salesforce.com";
-	int TLS_PORT = 443;	
-	// Silly, but Message headers only take Strings
 	String TRUESTRING = "True";
+	String URL_CONNECT = "/cometd/41.0/connect";
 	String URL_HANDSHAKE = "/cometd/41.0/handshake";
 	String URL_SUBSCRIBE = "/cometd/41.0/subscribe";
-	String URL_CONNECT = "/cometd/41.0/connect";
-	String AUTH_RESET = "RESET";
-	String PARAM_STYLESHEET = "stylesheet.mustache";
-	String AUTH_HEADER = "Authorization";
-	String BUS_FINAL_DESTINATION = "SFDCFinalDestination";
 }

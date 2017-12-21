@@ -174,6 +174,8 @@ public class ApplicationStarter extends AbstractVerticle {
 	 * @return Options to load verticle
 	 */
 	private DeploymentOptions getDeploymentOptions(final BaseConfig bc) {
+		// Update global proxy if any
+		bc.setProxyFromAppConfig(this.appConfig);
 		final DeploymentOptions options = new DeploymentOptions();
 		options.setWorker(bc.isDeployAsWorker());
 		options.setInstances(bc.getVerticleInstanceCount());

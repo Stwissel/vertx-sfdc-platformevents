@@ -59,6 +59,19 @@ public class AuthConfig extends BaseConfig {
 	private String sfdcPassword = null;
 
 	/**
+	 * Token used for oAuth, typically supplied by env_variable Variable
+	 * is[authName]_consumerToken
+	 */
+	private String consumerToken = null;
+
+	/**
+	 * secret used for oAuth, typically supplied by env_variable Variable
+	 * is[authName]_consumerSecret
+	 */
+	private String consumerSecret = null;
+
+
+	/**
 	 * @return the authName
 	 */
 	public final String getAuthName() {

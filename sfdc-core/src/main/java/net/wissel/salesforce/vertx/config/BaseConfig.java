@@ -231,6 +231,22 @@ public class BaseConfig {
 	}
 
 	/**
+	 * @param proxy
+	 *            the proxy to set
+	 */
+	public BaseConfig setProxyFromAppConfig(final AppConfig appConfig) {
+		if (this.proxy == null && appConfig.proxy != null) {
+			this.proxy = appConfig.proxy;
+		}
+
+		if (this.proxyPort == 0 && appconfig.proxyPort != 0) {
+			this.proxyPort = appConfig.proxyPort;
+		}
+		
+		return this;
+	}
+
+	/**
 	 * @param proxyPort
 	 *            the proxyPort to set
 	 */
