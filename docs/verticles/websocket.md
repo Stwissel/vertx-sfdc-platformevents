@@ -3,6 +3,7 @@
 ## You are here: [Home](/index.md):Verticles:[Websocket](websocket.md)
 
 See also:
+
 - [Authentication Verticles](auth.md)
 - [Subscription to platform events Verticles](platform.md)
 - [Send result to console Verticle](console.md)

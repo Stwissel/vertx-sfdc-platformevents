@@ -16,8 +16,10 @@ The only thing a consumer must do: consume JSON data from the eventbus. So any v
 
 To be more specific: a consumer would listen to startup and shutdown events on the eventbus (see the details about the [EventBus](/eventbus.md)) and use one (if needed) of the Auth verticles for credentials (see [Authentication and Authorization](/auth.md)) and take advantage of the [ConsumerConfig](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/config/ConsumerConfig.java) class.
 
-Fastest results:<br />
-Extent the [AbstractSFDCConsumer](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/consumer/AbstractSFDCConsumer.java) class
+Fastest results:
+
+- Extent the [AbstractSFDCConsumer](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/consumer/AbstractSFDCConsumer.java) class
+- If your verticle needs to extend the router (e.g. the Websocket consumer) implement the [SFDCRouterExtension](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/SFDCRouterExtension.java) interface.
 
 ## Sample code
 
@@ -27,11 +29,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 
 public class ConsoleConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
-
-    @Override
-    protected void addRoutes(final Router router) {
-        // We don't use routes here
-    }
 
     @Override
     // Just write out to the console

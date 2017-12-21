@@ -52,7 +52,7 @@ The proxy settings are provided (optional) for each verticle separately to accom
 ## Environment parameters
 Mostly for compatibility for the PaaS environments and your security:
 - port: Overwrites the listener port for the HTTP admin task
-- For each authConfig sdfcUser and sfdcPassword prefixed by the authName
+- For each authConfig `sdfcUser`,  `sfdcPassword`, `consumerToken` and `consumerSecret` prefixed by the authName
 
 Sample:<br />
 When your 2 authConfigs, one has `"authName" : "default"` and the other `"authName" : "system36"` then the following
@@ -61,8 +61,12 @@ When your 2 authConfigs, one has `"authName" : "default"` and the other `"authNa
 - port
 - default_sfdcUser
 - default_sfdcPassword
+- default_consumerToken
+- default_consumerSecret
 - system36_sfdcUser
 - system36_sfdcPassword
+- system36_consumerToken
+- system36_consumerSecret
 
 As far as I tested: all is case sensitive
  
