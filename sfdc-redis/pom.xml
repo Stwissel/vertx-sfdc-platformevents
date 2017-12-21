@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>net.wissel.salesforce</groupId>
-		<version>0.2.1-SNAPSHOT</version>
+		<version>0.2.3</version>
 		<artifactId>net.wissel.salesforce.vertx</artifactId>
 	</parent>
 	<artifactId>sfdc-redis</artifactId>
