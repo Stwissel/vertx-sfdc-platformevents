@@ -23,13 +23,12 @@ package net.wissel.salesforce.vertx.consumer;
 
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.Router;
 
 /**
  * @author swissel
  *
  */
-public class ConsoleConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
+public class ConsoleConsumer extends AbstractSFDCConsumer {
 
 	@Override
 	// Just write out to the console

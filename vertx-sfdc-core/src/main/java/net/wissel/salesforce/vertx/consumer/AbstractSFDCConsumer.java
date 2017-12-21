@@ -26,7 +26,6 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.Router;
 import net.wissel.salesforce.vertx.AbstractSFDCVerticle;
 import net.wissel.salesforce.vertx.SFDCVerticle;
 import net.wissel.salesforce.vertx.config.ConsumerConfig;
@@ -35,26 +34,10 @@ import net.wissel.salesforce.vertx.config.ConsumerConfig;
  * @author swissel
  *
  */
-public abstract class AbstractSDFCConsumer extends AbstractSFDCVerticle {
+public abstract class AbstractSFDCConsumer extends AbstractSFDCVerticle {
 
-	private Router router = null;
 	protected MessageConsumer<JsonObject> consumer = null;
 	private ConsumerConfig consumerConfig = null;
-
-	protected ConsumerConfig getConsumerConfig() {
-		if (this.consumerConfig == null) {
-			this.consumerConfig = this.config().mapTo(ConsumerConfig.class);
-		}
-		return this.consumerConfig;
-	}
-
-	/**
-	 * What to do with actual arriving data
-	 * 
-	 * @param incomingData
-	 *            the payload in an envelope
-	 */
-	protected abstract void processIncoming(final Message<JsonObject> incomingData);
 
 	@Override
 	public SFDCVerticle startListening() {
@@ -62,10 +45,8 @@ public abstract class AbstractSDFCConsumer extends AbstractSFDCVerticle {
 		// Listen on the event bus
 		final EventBus eb = this.vertx.eventBus();
 		this.consumer = eb.consumer(this.getConsumerConfig().getEventBusAddress());
-		this.logger.info(this.getClass().getName()+" listening on " + this.consumer.address());
+		this.logger.info(this.getClass().getName() + " listening on " + this.consumer.address());
 		this.consumer.handler(this::processIncoming);
-		// Setup local routes if needed
-		this.addRoutes(this.router);
 		// Done
 		this.listening = true;
 		return this;
@@ -84,5 +65,20 @@ public abstract class AbstractSDFCConsumer extends AbstractSFDCVerticle {
 		}
 		return this;
 	}
+
+	protected ConsumerConfig getConsumerConfig() {
+		if (this.consumerConfig == null) {
+			this.consumerConfig = this.config().mapTo(ConsumerConfig.class);
+		}
+		return this.consumerConfig;
+	}
+
+	/**
+	 * What to do with actual arriving data
+	 *
+	 * @param incomingData
+	 *            the payload in an envelope
+	 */
+	protected abstract void processIncoming(final Message<JsonObject> incomingData);
 
 }

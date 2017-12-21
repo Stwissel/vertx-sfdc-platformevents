@@ -28,15 +28,16 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import net.wissel.salesforce.vertx.SFDCRouterExtension;
 
 /**
  * @author swissel
  *
  */
-public class WebSocketConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
-
+public class WebSocketConsumer extends AbstractSFDCConsumer implements SFDCRouterExtension {
+	
 	@Override
-	protected void addRoutes(final Router router) {
+	public SFDCRouterExtension addRoutes(final Router router) {
 		// Socket handler
 		final SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
 		final SockJSHandler sockJSHandler = SockJSHandler.create(this.vertx, options);
@@ -52,7 +53,7 @@ public class WebSocketConsumer extends AbstractSDFCConsumer implements SFDCConsu
 		final String someURL = this.getConsumerConfig().getUrl();
 		this.logger.info("Router listening on " + someURL + " for " + this.getWebSocketName());
 		router.route(someURL).handler(sockJSHandler);
-
+		return this;
 	}
 
 	@Override
@@ -65,4 +66,5 @@ public class WebSocketConsumer extends AbstractSDFCConsumer implements SFDCConsu
 	private String getWebSocketName() {
 		return this.getConsumerConfig().getParameters().get("websocketname");
 	}
+
 }

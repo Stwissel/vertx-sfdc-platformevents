@@ -36,7 +36,7 @@
 
 		<dependency>
 			<groupId>net.wissel.salesforce</groupId>
-			<artifactId>sfdc-core</artifactId>
+			<artifactId>vertx-sfdc-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>

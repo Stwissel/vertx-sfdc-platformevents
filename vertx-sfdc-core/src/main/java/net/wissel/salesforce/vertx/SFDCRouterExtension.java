@@ -19,7 +19,7 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.salesforce.vertx.consumer;
+package net.wissel.salesforce.vertx;
 
 import io.vertx.ext.web.Router;
 
@@ -29,14 +29,14 @@ import io.vertx.ext.web.Router;
  * @author swissel
  *
  */
-public interface SFDCConsumer {
+public interface SFDCRouterExtension {
 	
 	/**
 	 * Capture the Router to be able to extend routes
 	 * @param router the router
 	 * @return fluid self
 	 */
-	public SFDCConsumer setRouter(final Router router);
+	//public SFDCRouterExtension setRouter(final Router router);
 	
 	/**
 	 * Add routes defined in the Verticles
@@ -45,6 +45,6 @@ public interface SFDCConsumer {
 	 * @param router the main router
 	 * @return fluid self
 	 */
-	protected SFDCConsumer addRoutes(Router router);
+	public SFDCRouterExtension addRoutes(Router router);
 
 }
