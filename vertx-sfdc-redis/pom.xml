@@ -3,10 +3,10 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>net.wissel.salesforce</groupId>
-		<version>0.2.5</version>
+		<version>0.3.0</version>
 		<artifactId>net.wissel.salesforce.vertx</artifactId>
 	</parent>
-	<artifactId>sfdc-redis</artifactId>
+	<artifactId>vertx-sfdc-redis</artifactId>
 	<name>Vert.x redis modules for Salesforce</name>
 	<description>Extension to the Vert.x Salesforce connectivity using Redis Key-value store</description>
 

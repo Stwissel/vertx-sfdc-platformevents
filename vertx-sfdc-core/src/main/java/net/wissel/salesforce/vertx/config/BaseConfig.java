@@ -239,7 +239,7 @@ public class BaseConfig {
 			this.proxy = appConfig.proxy;
 		}
 
-		if (this.proxyPort == 0 && appconfig.proxyPort != 0) {
+		if (this.proxyPort == 0 && appConfig.proxyPort != 0) {
 			this.proxyPort = appConfig.proxyPort;
 		}
 		

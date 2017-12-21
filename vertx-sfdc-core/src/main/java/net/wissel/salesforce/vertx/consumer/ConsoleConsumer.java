@@ -1,5 +1,5 @@
 /** ========================================================================= *
- * Copyright (C)  2017, 2018 Salesforce Inc ( http://www.salesforce.com/ )    *
+ * Copyright (C)  2017, 2018 Salesforce Inc ( http://www.salesforce.com/      *
  *                            All rights reserved.                            *
  *                                                                            *
  *  @author     Stephan H. Wissel (stw) <swissel@salesforce.com>              *
@@ -21,16 +21,21 @@
  */
 package net.wissel.salesforce.vertx.consumer;
 
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 
 /**
- * Interface that ensures we can hand the Router to a Verticle
- * 
  * @author swissel
  *
  */
-public interface SFDCConsumer {
-	
-	public void setRouter(final Router router);
+public class ConsoleConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
+
+	@Override
+	// Just write out to the console
+	protected void processIncoming(final Message<JsonObject> incomingData) {
+		final JsonObject body = incomingData.body();
+		this.logger.info(body.encodePrettily());
+	}
 
 }

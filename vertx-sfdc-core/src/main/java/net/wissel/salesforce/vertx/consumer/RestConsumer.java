@@ -111,11 +111,6 @@ public class RestConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
 	}
 
 	@Override
-	protected void addRoutes(final Router router) {
-		// No routes required for this one
-	}
-
-	@Override
 	protected void processIncoming(final Message<JsonObject> incomingData) {
 		final JsonObject body = incomingData.body();
 		final PostRetry payload = new PostRetry(body);

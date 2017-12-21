@@ -35,23 +35,11 @@ import net.wissel.salesforce.vertx.config.ConsumerConfig;
  * @author swissel
  *
  */
-public abstract class AbstractSDFCConsumer extends AbstractSFDCVerticle implements SFDCConsumer {
+public abstract class AbstractSDFCConsumer extends AbstractSFDCVerticle {
 
 	private Router router = null;
 	protected MessageConsumer<JsonObject> consumer = null;
 	private ConsumerConfig consumerConfig = null;
-
-	@Override
-	public void setRouter(final Router router) {
-		this.router = router;
-	}
-
-	/**
-	 * Add local routes if any
-	 * 
-	 * @param router
-	 */
-	protected abstract void addRoutes(Router router);
 
 	protected ConsumerConfig getConsumerConfig() {
 		if (this.consumerConfig == null) {

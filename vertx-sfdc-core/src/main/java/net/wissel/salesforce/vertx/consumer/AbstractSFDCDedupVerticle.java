@@ -21,26 +21,60 @@
  */
 package net.wissel.salesforce.vertx.consumer;
 
+import java.util.List;
+
+import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
+import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
+import net.wissel.salesforce.vertx.Constants;
 
 /**
- * @author swissel
+ * A Dedup Verticle consumes an incoming message and tries to figure out if
+ * that had been sent before. If that's the case the message is dropped
+ * if not, then it is forwarded to its final destination retrieved from the header
+ * 
+ * @author stw
  *
  */
-public class ConsoleConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
+public abstract class AbstractSFDCDedupVerticle extends AbstractSDFCConsumer {
 
 	@Override
-	protected void addRoutes(final Router router) {
-		// We don't use routes here
-	}
-
-	@Override
-	// Just write out to the console
 	protected void processIncoming(final Message<JsonObject> incomingData) {
-		final JsonObject body = incomingData.body();
-		this.logger.info(body.encodePrettily());
+		final MultiMap headers = incomingData.headers();
+		final List<String> finalDestination = headers.getAll(Constants.BUS_FINAL_DESTINATION);
+		if (finalDestination != null && !finalDestination.isEmpty()) {
+			final JsonObject j = incomingData.body();
+			// Forwarding the original headers
+			final DeliveryOptions dOpts = new DeliveryOptions();
+			dOpts.setHeaders(headers);
+			Future<Void> duplicate = Future.future(f -> {
+				if (f.succeeded()) {
+					// Forwarding it to where it should go
+					EventBus eb = this.getVertx().eventBus();
+					finalDestination.forEach(d -> {
+						eb.send(d, j, dOpts);
+					});			
+				} else {
+					this.logger.info("Dropped duplicate Object:"+String.valueOf(j));
+				}
+			});
+			// The duplicate check happens here!
+			this.checkForDuplicate(duplicate, j);
+		} else {
+			this.logger.fatal(new Exception("Incoming message without final destination"+incomingData.toString()));
+		}
+
 	}
+
+	/**
+	 * Call to check if there is an actual duplicate
+	 * @param failIfDuplicate Future that needs to fail if it is a duplicate, succeed if not
+	 * @param messageBody the incoming message body to be checked
+	 */
+	protected abstract void checkForDuplicate(final Future<Void> failIfDuplicate, final JsonObject messageBody);
 
 }

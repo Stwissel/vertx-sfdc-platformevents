@@ -70,12 +70,25 @@ public class AuthConfig extends BaseConfig {
 	 */
 	private String consumerSecret = null;
 
-
 	/**
 	 * @return the authName
 	 */
 	public final String getAuthName() {
 		return this.authName;
+	}
+
+	/**
+	 * @return the consumerSecret
+	 */
+	public final String getConsumerSecret() {
+		return this.consumerSecret;
+	}
+
+	/**
+	 * @return the consumerToken
+	 */
+	public final String getConsumerToken() {
+		return this.consumerToken;
 	}
 
 	/**
@@ -106,6 +119,22 @@ public class AuthConfig extends BaseConfig {
 	public final AuthConfig setAuthName(final String authName) {
 		this.authName = authName;
 		return this;
+	}
+
+	/**
+	 * @param consumerSecret
+	 *            the consumerSecret to set
+	 */
+	public final void setConsumerSecret(final String consumerSecret) {
+		this.consumerSecret = consumerSecret;
+	}
+
+	/**
+	 * @param consumerToken
+	 *            the consumerToken to set
+	 */
+	public final void setConsumerToken(final String consumerToken) {
+		this.consumerToken = consumerToken;
 	}
 
 	/**

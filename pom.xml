@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.wissel.salesforce</groupId>
 	<artifactId>net.wissel.salesforce.vertx</artifactId>
-	<version>0.2.5</version>
+	<version>0.3.0</version>
 	<name>Vert.x modules for Salesforce</name>
 	<description>Verticles that connect to Salesforce Platform events and API</description>
 	<url>https://stwissel.github.io/vertx-sfdc-platformevents</url>
@@ -152,8 +152,8 @@
 	</build>
 
 	<modules>
-		<module>sfdc-core</module>
-		<module>sfdc-redis</module>
+		<module>vertx-sfdc-core</module>
+		<module>vertx-sfdc-redis</module>
 	</modules>
 
 </project>

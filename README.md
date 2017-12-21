@@ -6,7 +6,7 @@ Collection of verticles that enable interaction with the Salesforce API
 
 ## Current released version
 
-The current released version is `0.2.4`<br />
+The current released version is `0.3.0`<br />
 Development might have newer snapshots
 
 ## Available Verticles
@@ -26,8 +26,14 @@ Add this dependencies to your `pom.xml`:
 ```
 <dependency>
 	<groupId>net.wissel.salesforce</groupId>
-	<artifactId>net.wissel.salesforce.vertx</artifactId>
-	<version>0.2.4</version>
+	<artifactId>vertx-sfdc-core</artifactId>
+	<version>0.3.0</version>
+</dependency>
+<!-- Optional for deduplication service -->
+<dependency>
+	<groupId>net.wissel.salesforce</groupId>
+	<artifactId>vertx-sfdc-redis</artifactId>
+	<version>0.3.0</version>
 </dependency>
 ```
 Check the [full documentation](https://stwissel.github.io/vertx-sfdc-platformevents)!
@@ -36,4 +42,5 @@ Artifacts on [Maven Central](https://search.maven.org/#search%7Cga%7C1%7Ca%3A%22
 
 ## Issues and feedback
 
-Use the issue tracker. That's what it is made for
+I would love to hear about your implementation or ideas or challenges, so 
+[open an issue on GitHub](https://github.com/Stwissel/vertx-sfdc-platformevents/issues) - even for sharing success. Don't be shy!
