@@ -44,7 +44,7 @@ public class RedisDedup extends AbstractSFDCDedupVerticle {
 	/**
 	 * The Redis client holding data
 	 */
-	private RedisClient redis = null;
+	private RedisClient redisClient = null;
 
 	@Override
 	protected void checkForDuplicate(final Future<Void> failIfDuplicate, final JsonObject messageBody) {
@@ -78,11 +78,11 @@ public class RedisDedup extends AbstractSFDCDedupVerticle {
 	}
 
 	private RedisClient getRedisClient() {
-		if (this.redis == null) {
-			// TODO: Read redis configuration from condfig
+		if (this.redisClient == null) {
+			// TODO: Read redisClient configuration from condfig
 			final RedisOptions config = new RedisOptions().setHost("127.0.0.1");
-			this.redis = RedisClient.create(this.getVertx(), config);
+			this.redisClient = RedisClient.create(this.getVertx(), config);
 		}
-		return this.redis;
+		return this.redisClient;
 	}
 }

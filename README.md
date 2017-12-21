@@ -32,7 +32,7 @@ Add this dependencies to your `pom.xml`:
 ```
 Check the [full documentation](https://stwissel.github.io/vertx-sfdc-platformevents)!
 
-Artifacts on [Maven Central](https://search.maven.org/#artifactdetails%7Cnet.wissel.salesforce%7Cnet.wissel.salesforce.vertx)
+Artifacts on [Maven Central](https://search.maven.org/#search%7Cga%7C1%7Ca%3A%22net.wissel.salesforce.vertx%22)
 
 ## Issues and feedback
 
