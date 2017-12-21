@@ -72,6 +72,7 @@ public class ConsumerConfig extends BaseConfig {
 	/**
 	 * @param authName
 	 *            the authName to set
+	 * @return fluid ConsumerConfig
 	 */
 	public final ConsumerConfig setAuthName(final String authName) {
 		this.authName = authName;
@@ -81,12 +82,18 @@ public class ConsumerConfig extends BaseConfig {
 	/**
 	 * @param eventBusAddress
 	 *            the eventBusAddress to set
+	 * @return fluid ConsumerConfig
 	 */
 	public final ConsumerConfig setEventBusAddress(final String eventBusAddress) {
 		this.eventBusAddress = eventBusAddress;
 		return this;
 	}
 
+	/**
+	 * 
+	 * @param newURL the URL for the consumer
+	 * @return fluid ConsumerConfig
+	 */
 	public final ConsumerConfig setUrl(final String newURL) {
 		this.url = newURL;
 		return this;
