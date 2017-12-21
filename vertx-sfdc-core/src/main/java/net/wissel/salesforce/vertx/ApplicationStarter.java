@@ -59,7 +59,6 @@ import net.wissel.salesforce.vertx.config.AuthConfig;
 import net.wissel.salesforce.vertx.config.BaseConfig;
 import net.wissel.salesforce.vertx.config.ConsumerConfig;
 import net.wissel.salesforce.vertx.config.ListenerConfig;
-import net.wissel.salesforce.vertx.consumer.SFDCConsumer;
 
 /**
  * Main Verticle that loads the entire application and its dependent Verticles
@@ -174,6 +173,8 @@ public class ApplicationStarter extends AbstractVerticle {
 	 * @return Options to load verticle
 	 */
 	private DeploymentOptions getDeploymentOptions(final BaseConfig bc) {
+		// Update global proxy if any
+		bc.setProxyFromAppConfig(this.appConfig);
 		final DeploymentOptions options = new DeploymentOptions();
 		options.setWorker(bc.isDeployAsWorker());
 		options.setInstances(bc.getVerticleInstanceCount());
@@ -325,10 +326,10 @@ public class ApplicationStarter extends AbstractVerticle {
 
 			/*
 			 * This is the magic: we hand over the router to the verticle to be
-			 * used only sparringly
+			 * used only sparingly
 			 */
-			if (v instanceof SFDCConsumer) {
-				((SFDCConsumer) v).setRouter(this.router);
+			if (v instanceof SFDCRouterExtension) {
+				((SFDCRouterExtension) v).addRoutes(this.router);
 			}
 			this.getVertx().deployVerticle(v, options, r -> {
 				if (r.succeeded()) {

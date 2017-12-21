@@ -23,24 +23,48 @@ package net.wissel.salesforce.vertx.consumer;
 
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import net.wissel.salesforce.vertx.SFDCRouterExtension;
 
 /**
  * @author swissel
  *
  */
-public class ConsoleConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
-
+public class WebSocketConsumer extends AbstractSFDCConsumer implements SFDCRouterExtension {
+	
 	@Override
-	protected void addRoutes(final Router router) {
-		// We don't use routes here
+	public SFDCRouterExtension addRoutes(final Router router) {
+		// Socket handler
+		final SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
+		final SockJSHandler sockJSHandler = SockJSHandler.create(this.vertx, options);
+
+		final BridgeOptions bo = new BridgeOptions()
+				.addOutboundPermitted(new PermittedOptions().setAddress(this.getWebSocketName()));
+
+		sockJSHandler.bridge(bo, event -> {
+			this.logger.info("A websocket event occurred: " + event.type() + "; " + event.getRawMessage());
+			event.complete(true);
+		});
+
+		final String someURL = this.getConsumerConfig().getUrl();
+		this.logger.info("Router listening on " + someURL + " for " + this.getWebSocketName());
+		router.route(someURL).handler(sockJSHandler);
+		return this;
 	}
 
 	@Override
-	// Just write out to the console
 	protected void processIncoming(final Message<JsonObject> incomingData) {
 		final JsonObject body = incomingData.body();
-		this.logger.info(body.encodePrettily());
+		this.logger.info("Published to eventbus:" + body.toString());
+		this.getVertx().eventBus().publish(this.getWebSocketName(), body);
+	}
+
+	private String getWebSocketName() {
+		return this.getConsumerConfig().getParameters().get("websocketname");
 	}
 
 }

@@ -40,7 +40,6 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ProxyOptions;
-import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
@@ -58,7 +57,7 @@ import net.wissel.salesforce.vertx.auth.AuthInfo;
  * @author swissel
  *
  */
-public class RestConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
+public class RestConsumer extends AbstractSFDCConsumer {
 
 	/**
 	 * Capture retry operations
@@ -108,11 +107,6 @@ public class RestConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
 
 		// Do all the other stuff
 		return super.startListening();
-	}
-
-	@Override
-	protected void addRoutes(final Router router) {
-		// No routes required for this one
 	}
 
 	@Override
@@ -239,12 +233,14 @@ public class RestConsumer extends AbstractSDFCConsumer implements SFDCConsumer {
 	}
 
 	/**
-	 * Turns the JsonObject that came over the wire into a buffer object
-	 * to be used in the HTTP Post. Special twist: if configured the JSONObject
-	 * is run through a {{Mustache}} transformation, so the result can be anything
-	 * JSON, HTML, XML, PlainText, WebForm etc. Allows ultimate flexibility when one
-	 * knows Mustache
-	 * @param Json Object with incoming payload
+	 * Turns the JsonObject that came over the wire into a buffer object to be
+	 * used in the HTTP Post. Special twist: if configured the JSONObject is run
+	 * through a {{Mustache}} transformation, so the result can be anything
+	 * JSON, HTML, XML, PlainText, WebForm etc. Allows ultimate flexibility when
+	 * one knows Mustache
+	 * 
+	 * @param Json
+	 *            Object with incoming payload
 	 * @return a Buffer object to be pasted
 	 */
 	private Buffer transformBody(final JsonObject body) {

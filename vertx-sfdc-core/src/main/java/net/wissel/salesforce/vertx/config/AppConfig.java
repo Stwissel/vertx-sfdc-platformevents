@@ -45,6 +45,8 @@ public class AppConfig {
 	public final Collection<ConsumerConfig> consumerConfigurations = new ArrayList<ConsumerConfig>();
 	public final Map<String, Map<String, Object>> verticlesToLoad = new HashMap<String, Map<String, Object>>();
 	public final Map<String, String> parameters = new HashMap<String, String>();
+	public String proxy = null; // Default for entire Verticles if set
+	public int proxyPort = 0;
 	public int port = 8044; // Our WebServer Port
 
 	/* Convenience methods */

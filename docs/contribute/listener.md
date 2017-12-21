@@ -19,10 +19,9 @@ The only thing a listener must do: provide JSON data onto the eventbus. So any v
 
 To be more specific: a listener would listen to startup and shutdown events on the eventbus (see the details about the [EventBus](/eventbus.md)) and use one of the Auth verticles for credentials (see [Authentication and Authorization](/auth.md)) and take advantage of the [ListenerConfig](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/config/ListenerConfig.java) class.
 
-If the listener will listen to the Salesforce CometD API (Platform Events, Streaming API, Generic Stream events) the easiest way is to extend the default listener [CometD](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/listener/CometD.java).
-
-If something else shall be listened to (e.g. a custom web service call from Salesforce), extending [AbstractSFDCVerticle](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/AbstractSFDCVerticle.java) gets results fastest.
-
+- If the listener will listen to the Salesforce CometD API (Platform Events, Streaming API, Generic Stream events) the easiest way is to extend the default listener [CometD](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/listener/CometD.java).
+- If something else shall be listened to (e.g. a custom web service call from Salesforce), extending [AbstractSFDCVerticle](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/AbstractSFDCVerticle.java) gets results fastest.
+- If your verticle needs to extend the router (e.g. endpoint for a OBM ) implement the [SFDCRouterExtension](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/SFDCRouterExtension.java) interface.
 
 
 ## Sample code

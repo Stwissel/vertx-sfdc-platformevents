@@ -3,10 +3,10 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>net.wissel.salesforce</groupId>
-		<version>0.2.5</version>
+		<version>0.3.0</version>
 		<artifactId>net.wissel.salesforce.vertx</artifactId>
 	</parent>
-	<artifactId>sfdc-core</artifactId>
+	<artifactId>vertx-sfdc-core</artifactId>
 	<name>Vert.x core modules for Salesforce</name>
 	<description>Verticles that connect to Salesforce Platform events and API</description>
 

@@ -51,8 +51,14 @@ Add this dependencies to your `pom.xml`:
 ```
 <dependency>
 	<groupId>net.wissel.salesforce</groupId>
-	<artifactId>net.wissel.salesforce.vertx</artifactId>
-	<version>0.2.0</version>
+	<artifactId>vertx-sfdc-core</artifactId>
+	<version>0.3.0</version>
+</dependency>
+<!-- Optional for deduplication service -->
+<dependency>
+	<groupId>net.wissel.salesforce</groupId>
+	<artifactId>vertx-sfdc-redis</artifactId>
+	<version>0.3.0</version>
 </dependency>
 ```
 

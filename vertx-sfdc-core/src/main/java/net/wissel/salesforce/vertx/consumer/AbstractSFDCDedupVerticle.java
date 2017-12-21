@@ -29,7 +29,6 @@ import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.Router;
 import net.wissel.salesforce.vertx.Constants;
 
 /**
@@ -40,12 +39,7 @@ import net.wissel.salesforce.vertx.Constants;
  * @author stw
  *
  */
-public abstract class AbstractSFDCDedupVerticle extends AbstractSDFCConsumer {
-
-	@Override
-	protected void addRoutes(final Router router) {
-		// We don't add routes for this type of verticle
-	}
+public abstract class AbstractSFDCDedupVerticle extends AbstractSFDCConsumer {
 
 	@Override
 	protected void processIncoming(final Message<JsonObject> incomingData) {
