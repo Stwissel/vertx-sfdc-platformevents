@@ -4,13 +4,12 @@ Collection of verticles that enable interaction with the Salesforce API.
 
 ## Available Verticles
 
-- Authentication
-- Subscription to platform events
-- Send result to console
-- Send result to websocket
-- Main/Setup Verticle
-- Deduplication Verticle
-
+- [Authentication Verticles](verticles/auth.md)
+- [Subscription to platform events Verticles](verticles/platform.md)
+- [Send result to console Verticle](verticles/console.md)
+- [Send result to websocket Verticle](verticles/websocket.md)
+- [Main/Setup Verticle](verticles/main.md)
+- [Deduplication Verticles](verticles/dedup.md)
 ## Write your own
 - [Listeners](contribute/listener.md)
 - [Deduplication](contribute/dedup.md)
