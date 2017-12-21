@@ -11,6 +11,12 @@ Collection of verticles that enable interaction with the Salesforce API.
 - Main/Setup Verticle
 - Deduplication Verticle
 
+## Write your own
+- [Listeners](contribute/listener.md)
+- [Deduplication](contribute/dedup.md)
+- [Consumers](contribute/consumer.md)
+- [Auth](contribute/auth.md)
+
 ## [Eventbus](eventbus.md)
 
 The SFDC verticles make heavy use of the [eventbus](eventbus.md).

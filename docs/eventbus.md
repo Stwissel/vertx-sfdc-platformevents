@@ -1,5 +1,7 @@
 # EventBus
 
+## You are here: [Home](index.md):[Event Bus](eventbus.md)
+
 The SFDC verticles make heavy use of the eventbus for communication. Addresses and address fragments used in the eventbus can be found in the file [Constants.java](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/Constants.java), using the `BUS_` and `MESSAGE_` prefixes.
 
 ## System startup
@@ -49,4 +51,6 @@ The data is **published**, so there can be more than one subscriber listening.
 
 ## Consumer listening
 
-Consumers listen to **one** configured address on the event bus 
+Consumers listen to **one** configured address on the event bus. Messages are consumed without confirmation to allow multiple subscriptions of consumers to one listener published address.
+
+Consumers might, as the need arises, request auth from an auth verticle
