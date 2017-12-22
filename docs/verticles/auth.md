@@ -10,3 +10,4 @@ See also:
 - [Main/Setup Verticle](main.md)
 - [Deduplication Verticles](dedup.md)
 - [Redis Dedup Service](redis.md)
+- [Rest Consumer](restconsumer.md) (post/forward to rest endpoint)

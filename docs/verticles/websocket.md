@@ -10,3 +10,4 @@ See also:
 - [Send result to websocket Verticle](websocket.md)
 - [Main/Setup Verticle](main.md)
 - [Deduplication Verticles](dedup.md)
+- [Rest Consumer](restconsumer.md) (post/forward to rest endpoint)

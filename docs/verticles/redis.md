@@ -1,4 +1,4 @@
-# Platform Event Listener Verticles
+# Redis Dedup Verticle
 
 ## You are here: [Home](/index.md):Verticles:[Redis Dedup Service](redis.md)
 
@@ -11,6 +11,7 @@ See also:
 - [Main/Setup Verticle](main.md)
 - [Deduplication Verticles](dedup.md)
 - [Redis Dedup Service](redis.md)
+- [Rest Consumer](restconsumer.md) (post/forward to rest endpoint)
 
 ## Setup
 
@@ -37,6 +38,7 @@ All parameters for the service are configured in [sfdcOptions.json](/configure.m
     "instanceName": "redisDedup",
     "verticleName": "net.wissel.salesforce.vertx.dedup.RedisDedup",
     "serverURL": "some.address.local",
+    "port": 6379,
     "sfdcPassword": "pwd"
     }
     ]
