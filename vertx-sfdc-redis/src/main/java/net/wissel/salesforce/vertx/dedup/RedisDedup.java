@@ -30,6 +30,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.redis.RedisClient;
 import io.vertx.redis.RedisOptions;
+import net.wissel.salesforce.vertx.config.DedupConfig;
 
 /**
  * @author swissel
@@ -79,9 +80,15 @@ public class RedisDedup extends AbstractSFDCDedupVerticle {
 
 	private RedisClient getRedisClient() {
 		if (this.redisClient == null) {
-			// TODO: Read redisClient configuration from condfig
-			final RedisOptions config = new RedisOptions().setHost("127.0.0.1");
-			this.redisClient = RedisClient.create(this.getVertx(), config);
+			final DedupConfig ddConfig = this.getDedupConfig();
+			final RedisOptions redisOptions = new RedisOptions();	
+			redisOptions.setAddress(ddConfig.getServerURL());
+			redisOptions.setAuth(ddConfig.getSfdcPassword());
+			if (ddConfig.getPort() > 0) {
+				redisOptions.setPort(ddConfig.getPort());
+			}
+			
+			this.redisClient = RedisClient.create(this.getVertx(), redisOptions);
 		}
 		return this.redisClient;
 	}

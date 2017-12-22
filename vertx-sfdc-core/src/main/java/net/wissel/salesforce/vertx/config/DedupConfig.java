@@ -52,6 +52,18 @@ public class DedupConfig extends BaseConfig {
 	private String sfdcPassword = null;
 
 	/**
+	 * Port for external service
+	 */
+	private int port = 0;
+
+	/**
+	 * @return the port
+	 */
+	public int getPort() {
+		return this.port;
+	}
+
+	/**
 	 * @return the serverURL
 	 */
 	public final String getServerURL() {
@@ -70,6 +82,16 @@ public class DedupConfig extends BaseConfig {
 	 */
 	public final String getSfdcUser() {
 		return this.sfdcUser;
+	}
+
+	/**
+	 * @param port
+	 *            the port to set
+	 * @return DedupConfig fluid
+	 */
+	public final DedupConfig setPort(final int port) {
+		this.port = port;
+		return this;
 	}
 
 	/**

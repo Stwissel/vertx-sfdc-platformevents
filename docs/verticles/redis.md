@@ -37,14 +37,15 @@ All parameters for the service are configured in [sfdcOptions.json](/configure.m
     "instanceName": "redisDedup",
     "verticleName": "net.wissel.salesforce.vertx.dedup.RedisDedup",
     "serverURL": "some.address.local",
-    "sfdcUser": "User",
     "sfdcPassword": "pwd"
     }
     ]
 ```
 
-**Note**: You dont' want to specify username/password in the JSON file and rather have them pulled from the environment.
-In this example the Verticle would try to read `redisDedup_sfdcUser` and `redisDedup_sfdcPassword` from the environment. 
+**Note**: You dont' want to specify password in the JSON file and rather have them pulled from the environment.
+In this example the Verticle would try to read `redisDedup_sfdcPassword` from the environment.
+
+**Note 2**: Make sure you have secured your Redis instance properly!!
 
 
 ## Operation
@@ -53,3 +54,7 @@ This ensures, event with an extended operational break, no event is processed tw
 
 The deduplication service will listen to `BUS_DEDUP_PREFIX+instanceName` in our case that would be:
 `SFDC:Dedup:redisDedup`
+
+## Source code
+
+Check [RedisDedup.java](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/vertx-sfdc-redis/src/main/java/net/wissel/salesforce/vertx/dedup/RedisDedup.java) on github
