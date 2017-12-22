@@ -47,7 +47,7 @@ public interface Constants {
 	String MESSAGE_START = "Rock it cowboys";
 	String MESSAGE_STOP = "Party is over";
 	String OPTION_FILE_NAME = "SFDCOptions.json";
-	String PARAM_STYLESHEET = "stylesheet.mustache";
+	String PARAM_STYLESHEET = "template";
 	String PRODUCTION = "login.salesforce.com";
 	String SANDBOX = "test.salesforce.com";
 	String TRUESTRING = "True";

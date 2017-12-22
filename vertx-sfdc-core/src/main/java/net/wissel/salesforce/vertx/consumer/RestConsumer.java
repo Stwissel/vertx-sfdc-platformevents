@@ -74,8 +74,6 @@ public class RestConsumer extends AbstractSFDCConsumer {
 		}
 	}
 
-	// TODO: make retry count and interval configurable
-	private final int maxRetryCount = 10;
 	private final Queue<PostRetry> retryBuffer = new LinkedList<>();
 	private AuthInfo authInfo = null;
 	private WebClient client = null;
@@ -95,7 +93,7 @@ public class RestConsumer extends AbstractSFDCConsumer {
 		});
 
 		// Retry timer - every 10 seconds
-		this.getVertx().setPeriodic(10000L, timer -> {
+		this.getVertx().setPeriodic(this.getInterValtime(), timer -> {
 			while (!this.retryBuffer.isEmpty()) {
 				final PostRetry payload = this.retryBuffer.poll();
 				if (payload == null) {
@@ -146,10 +144,26 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	/**
 	 * Returns the content type
 	 *
-	 * @return
+	 * @return The content type, defaults to JSON
 	 */
 	private String getContentType() {
 		return this.getConsumerConfig().getParameter(Constants.CONTENT_HEADER, Constants.CONTENT_TYPE_JSON);
+	}
+
+	/**
+	 * How long is the interval between retries Retrieved from parameters,
+	 * default 10 sec
+	 * 
+	 * @return the interval
+	 */
+	private long getInterValtime() {
+		final String intervalCandidate = this.getConsumerConfig().getParameter("interval", "10000");
+		return Long.valueOf(intervalCandidate);
+	}
+
+	private int getMaxRetryCount() {
+		final String retryCandidate = this.getConsumerConfig().getParameter("maxRetryCount", "10");
+		return Integer.valueOf(retryCandidate);
 	}
 
 	/**
@@ -222,7 +236,7 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	}
 
 	private void processError(final PostRetry payload) {
-		if (payload.retryCount < this.maxRetryCount) {
+		if (payload.retryCount < this.getMaxRetryCount()) {
 			payload.retryCount++;
 			// TODO: handle failure
 			this.retryBuffer.offer(payload);
@@ -238,7 +252,7 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	 * through a {{Mustache}} transformation, so the result can be anything
 	 * JSON, HTML, XML, PlainText, WebForm etc. Allows ultimate flexibility when
 	 * one knows Mustache
-	 * 
+	 *
 	 * @param Json
 	 *            Object with incoming payload
 	 * @return a Buffer object to be pasted
