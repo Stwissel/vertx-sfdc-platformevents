@@ -19,7 +19,7 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.salesforce.vertx.consumer;
+package net.wissel.salesforce.vertx.dedup;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
