@@ -9,3 +9,4 @@ See also:
 - [Send result to console Verticle](console.md)
 - [Send result to websocket Verticle](websocket.md)
 - [Deduplication Verticles](dedup.md)
+- [Redis Dedup Service](redis.md)
