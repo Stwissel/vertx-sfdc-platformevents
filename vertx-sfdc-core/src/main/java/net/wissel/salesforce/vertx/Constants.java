@@ -30,10 +30,12 @@ public interface Constants {
 	String AUTH_SOAP_TEMPLATE = "/logintemplate.xml";
 	// Messagebus constants	
 	String BUS_AUTHREQUEST = "SFDC:Auth:";
+	String BUS_DEDUP_PREFIX = "SFDC:Dedup:";
 	String BUS_FINAL_DESTINATION = "SFDCFinalDestination";
 	String BUS_START_STOP = "SFDC:CommandLine";
 	String CONFIG_AUTHNAME = "authName";
 	String CONFIG_AUTOSTART = "autoStart";
+	String CONFIG_INSTANCENAME = "instanceName";
 	String CONFIG_PORT = "Port";
 	String CONTENT_HEADER = "Content-Type";
 	String CONTENT_TYPE_JSON = "application/json;charset=UTF-8";

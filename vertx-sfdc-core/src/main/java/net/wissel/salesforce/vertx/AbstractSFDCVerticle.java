@@ -53,7 +53,8 @@ public abstract class AbstractSFDCVerticle extends AbstractVerticle implements S
 
 		// Listen to the eventbus for start/stop commands
 		final EventBus eb = this.getVertx().eventBus();
-		final String stopAddress = Constants.BUS_START_STOP + Constants.DELIMITER + this.getClass().getName();
+		// Where does the Verticle listen to for shutdown instructions
+		final String stopAddress = Constants.BUS_START_STOP + Constants.DELIMITER + this.config().getString(Constants.CONFIG_INSTANCENAME, this.getClass().getName());
 
 		// Listen to the start message
 		eb.consumer(Constants.BUS_START_STOP, message -> {
