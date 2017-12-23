@@ -16,7 +16,6 @@
 
 	<properties>
 		<!-- Software versions -->
-		<project.autorelease>true</project.autorelease>
 		<java.version>1.8</java.version>
 		<vertx.version>3.5.0</vertx.version>
 		<joda.version>2.9.9</joda.version>
@@ -24,6 +23,7 @@
 		<junit.version>4.12</junit.version>
 		<lorem.version>2.1</lorem.version>
 		<!-- Miscelaneous settings -->
+		<project.autorelease>true</project.autorelease>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<finalName>${project.artifactId}-${project.version}</finalName>

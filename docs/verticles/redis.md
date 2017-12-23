@@ -1,6 +1,6 @@
 # Redis Dedup Verticle
 
-## You are here: [Home](/index.md):Verticles:[Redis Dedup Service](redis.md)
+## You are here: [Home](../index.md):Verticles:[Redis Dedup Service](redis.md)
 
 See also:
 
@@ -30,7 +30,7 @@ To use it, you need to add the dependency to your `pom.xml`:
 
 ## Configuration
 
-All parameters for the service are configured in [sfdcOptions.json](/configure.md). A sample looks like this:
+All parameters for the service are configured in [sfdcOptions.json](../configure.md). A sample looks like this:
 
 ```
 "dedupConfigurations": [

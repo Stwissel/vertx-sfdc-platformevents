@@ -1,6 +1,6 @@
 # Rest Consumer
 
-## You are here: [Home](/index.md):Verticles:[Rest Consumer](restconsumer.md)
+## You are here: [Home](../index.md):Verticles:[Rest Consumer](restconsumer.md)
 
 See also:
 
@@ -15,7 +15,7 @@ See also:
 ## Overview
 
 The Rest consumer takes incoming messages and forwards them to a http(s) endpoint.
-It uses an [Auth](/auth.md) verticle to obtain the `Authorization` header before posting the payload.
+It uses an [Auth](../auth.md) verticle to obtain the `Authorization` header before posting the payload.
 
 Optionally, before posting, a [Mustache](http://mustache.github.io/) template gets applied that transforms
 the incoming JSON in whatever is required. This allows to POST to HTML forms, SOAP services etc.

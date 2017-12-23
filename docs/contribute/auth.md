@@ -1,6 +1,6 @@
 # Write your own Auth
 
-## You are here: [Home](/index.md):Write your own:[Auth](auth.md)
+## You are here: [Home](../index.md):Write your own:[Auth](auth.md)
 
 See also:
 - Write your own [Listener](listener.md)

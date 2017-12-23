@@ -1,6 +1,6 @@
 # Authentication Verticles
 
-## You are here: [Home](/index.md):Verticles:[Authentication](auth.md)
+## You are here: [Home](../index.md):Verticles:[Authentication](auth.md)
 
 See also:
 

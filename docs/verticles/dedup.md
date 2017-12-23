@@ -1,6 +1,6 @@
 # Deduplication Verticles
 
-## You are here: [Home](/index.md):Verticles:[Deduplication](dedup.md)
+## You are here: [Home](../index.md):Verticles:[Deduplication](dedup.md)
 
 See also:
 

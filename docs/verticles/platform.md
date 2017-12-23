@@ -1,6 +1,6 @@
 # Platform Event Listener Verticles
 
-## You are here: [Home](/index.md):Verticles:[Platform Listener](platform.md)
+## You are here: [Home](../index.md):Verticles:[Platform Listener](platform.md)
 
 See also:
 

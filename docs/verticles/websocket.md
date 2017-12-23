@@ -1,6 +1,6 @@
 # Websocket Verticle
 
-## You are here: [Home](/index.md):Verticles:[Websocket](websocket.md)
+## You are here: [Home](../index.md):Verticles:[Websocket](websocket.md)
 
 See also:
 

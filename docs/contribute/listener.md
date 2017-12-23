@@ -1,6 +1,6 @@
 # Write your own Listener
 
-## You are here: [Home](/index.md):Write your own:[Listener](listener.md)
+## You are here: [Home](../index.md):Write your own:[Listener](listener.md)
 
 See also:
 - Write your own [Deduplication](dedup.md)
@@ -17,7 +17,7 @@ The default listener debulkifies incoming messages. It puts the incoming JSON un
 ## How to implement
 The only thing a listener must do: provide JSON data onto the eventbus. So any verticle that does `this.getVertx.EventBus().publish(....)` can be used as "listener".
 
-To be more specific: a listener would listen to startup and shutdown events on the eventbus (see the details about the [EventBus](/eventbus.md)) and use one of the Auth verticles for credentials (see [Authentication and Authorization](/auth.md)) and take advantage of the [ListenerConfig](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/config/ListenerConfig.java) class.
+To be more specific: a listener would listen to startup and shutdown events on the eventbus (see the details about the [EventBus](../eventbus.md)) and use one of the Auth verticles for credentials (see [Authentication and Authorization](/auth.md)) and take advantage of the [ListenerConfig](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/config/ListenerConfig.java) class.
 
 - If the listener will listen to the Salesforce CometD API (Platform Events, Streaming API, Generic Stream events) the easiest way is to extend the default listener [CometD](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/listener/CometD.java).
 - If something else shall be listened to (e.g. a custom web service call from Salesforce), extending [AbstractSFDCVerticle](https://github.com/Stwissel/vertx-sfdc-platformevents/blob/master/sfdc-core/src/main/java/net/wissel/salesforce/vertx/AbstractSFDCVerticle.java) gets results fastest.

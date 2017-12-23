@@ -1,6 +1,6 @@
 # Main Verticle
 
-## You are here: [Home](/index.md):Verticles:[Main Verticle](main.md)
+## You are here: [Home](../index.md):Verticles:[Main Verticle](main.md)
 
 See also:
 

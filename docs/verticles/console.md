@@ -1,6 +1,6 @@
 # Console Verticle
 
-## You are here: [Home](/index.md):Verticles:[Console Verticle](console.md)
+## You are here: [Home](../index.md):Verticles:[Console Verticle](console.md)
 
 See also:
 
