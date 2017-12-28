@@ -76,7 +76,9 @@ public abstract class AbstractSFDCDedupVerticle extends AbstractSFDCVerticle {
 	}
 
 	/**
-	 * Call to check if there is an actual duplicate
+	 ** Actual routine that check for "duplication". Could be anything, depending on use case.
+	 * The future fails when a duplicate is found and succeeds when it is not.
+	 * This allows for async execution
 	 * 
 	 * @param failIfDuplicate
 	 *            Future that needs to fail if it is a duplicate, succeed if not

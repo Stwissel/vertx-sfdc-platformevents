@@ -19,47 +19,16 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.salesforce.vertx.dedup;
+package net.wissel.salesforce.vertx;
 
-import java.util.LinkedList;
-import java.util.Queue;
-
-import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.AbstractVerticle;
 
 /**
- * Checks the last 100 messages in memory to be exact duplicates of
- * each other
+ * Echo server that simply answers with randomly 200, 400 or 500
+ * and proper results - needed for testing the interface verticles
  * @author swissel
  *
  */
-public class MemoryDedup extends AbstractSFDCDedupVerticle {
-	
-	private final Queue<String> memoryQueue = new LinkedList<String>();
-	private static final int MAX_MEMBERS = 100;
-
-	/**
-	 * Actual routine that check for "duplication". Could be anything, depending on use case.
-	 * The future fails when a duplicate is found and succeeds when it is not.
-	 * This allows for async execution
-	 * 
-	 * @see net.wissel.salesforce.vertx.dedup.AbstractSFDCDedupVerticle#checkForDuplicate(io.vertx.core.Future, io.vertx.core.json.JsonObject)
-	 */
-	@Override
-	protected void checkForDuplicate(final Future<Void> failIfDuplicate, final JsonObject messageBody) {
-		final String candidate = messageBody.encode();
-		if (this.memoryQueue.contains(candidate)) {
-			// We have a duplicate and fail the future
-			failIfDuplicate.fail("Duplicate");
-		} else {
-			this.memoryQueue.offer(candidate);
-			// Limit the size of the queue
-			while (this.memoryQueue.size() > MAX_MEMBERS) {
-				this.memoryQueue.poll();
-			}
-			failIfDuplicate.complete();
-		}
-
-	}
+public class RestServiceEndpoint extends AbstractVerticle {
 
 }
