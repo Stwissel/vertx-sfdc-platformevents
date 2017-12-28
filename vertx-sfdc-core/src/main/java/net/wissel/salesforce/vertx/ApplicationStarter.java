@@ -58,6 +58,7 @@ import net.wissel.salesforce.vertx.config.AppConfig;
 import net.wissel.salesforce.vertx.config.AuthConfig;
 import net.wissel.salesforce.vertx.config.BaseConfig;
 import net.wissel.salesforce.vertx.config.ConsumerConfig;
+import net.wissel.salesforce.vertx.config.DedupConfig;
 import net.wissel.salesforce.vertx.config.ListenerConfig;
 
 /**
@@ -134,8 +135,8 @@ public class ApplicationStarter extends AbstractVerticle {
 
 		// and parameters with prefix for each listener / consumer entry
 		List<String> configNames = Arrays.asList("listenerConfigurations", "consumerConfigurations",
-				"authConfigurations");
-		List<String> envNames = Arrays.asList("Proxy", "ProxyPort", "sfdcUser", "sfdcPassword");
+				"authConfigurations","dedupConfigruations");
+		List<String> envNames = Arrays.asList("Proxy", "ProxyPort", "sfdcUser", "sfdcPassword", "consumerToken", "consumerSecret");
 		List<String> proxyNames = Arrays.asList("Proxy", "ProxyPort");
 		for (String cName : configNames) {
 			try {
@@ -145,7 +146,7 @@ public class ApplicationStarter extends AbstractVerticle {
 						JsonObject c = (JsonObject) oneConf;
 						String prefix = c.getString(Constants.CONFIG_AUTHNAME);
 						if (prefix != null) {
-							List<String> toProcess = (cName.equals("authConfigurations")) ? envNames : proxyNames;
+							List<String> toProcess = (cName.equals("authConfigurations") || cName.equals("dedupConfigruations")) ? envNames : proxyNames;
 							toProcess.forEach(key -> {
 								String candidate = System.getenv(prefix + "_" + key);
 								if (candidate != null) {
@@ -242,6 +243,11 @@ public class ApplicationStarter extends AbstractVerticle {
 		for (final AuthConfig ac : this.appConfig.authConfigurations) {
 			allLoadedVerticles.add(this.loadVerticle(ac.getVerticleName(), this.getDeploymentOptions(ac)));
 		}
+		
+		// Deduplication
+				for (final DedupConfig dc : this.appConfig.dedupConfigurations) {
+					allLoadedVerticles.add(this.loadVerticle(dc.getVerticleName(), this.getDeploymentOptions(dc)));
+				}
 
 		// Consumers
 		for (final ConsumerConfig cc : this.appConfig.consumerConfigurations) {
@@ -373,7 +379,7 @@ public class ApplicationStarter extends AbstractVerticle {
 		// Make the listeners stop listening
 		for (final ListenerConfig lc : this.appConfig.listenerConfigurations) {
 			final Future<Void> curFuture = Future.future();
-			final String shutdowAddress = Constants.BUS_START_STOP + Constants.DELIMITER + lc.getVerticleName();
+			final String shutdowAddress = Constants.BUS_START_STOP + Constants.DELIMITER + lc.getInstanceName();
 			try {
 				eb.send(shutdowAddress, Constants.MESSAGE_STOP, delOpt, ar -> {
 					if (ar.succeeded()) {

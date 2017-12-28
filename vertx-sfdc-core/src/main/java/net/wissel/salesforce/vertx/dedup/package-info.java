@@ -19,43 +19,9 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.salesforce.vertx.consumer;
-
-import java.util.LinkedList;
-import java.util.Queue;
-
-import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
-
 /**
- * Checks the last 100 messages in memory to be exact duplicates of
- * each other
+ * Classes and Interfaces to define a deduplication service
  * @author swissel
  *
  */
-public class MemoryDedup extends AbstractSFDCDedupVerticle {
-	
-	private final Queue<String> memoryQueue = new LinkedList<String>();
-	private static final int MAX_MEMBERS = 100;
-
-	/**
-	 * @see net.wissel.salesforce.vertx.consumer.AbstractSFDCDedupVerticle#checkForDuplicate(io.vertx.core.Future, io.vertx.core.json.JsonObject)
-	 */
-	@Override
-	protected void checkForDuplicate(final Future<Void> failIfDuplicate, final JsonObject messageBody) {
-		final String candidate = messageBody.encode();
-		if (this.memoryQueue.contains(candidate)) {
-			// We have a duplicate and fail the future
-			failIfDuplicate.fail("Duplicate");
-		} else {
-			this.memoryQueue.offer(candidate);
-			// Limit the size of the queue
-			while (this.memoryQueue.size() > MAX_MEMBERS) {
-				this.memoryQueue.poll();
-			}
-			failIfDuplicate.complete();
-		}
-
-	}
-
-}
+package net.wissel.salesforce.vertx.dedup;

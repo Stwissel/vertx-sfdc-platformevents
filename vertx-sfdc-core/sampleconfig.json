@@ -1,14 +1,43 @@
 {
     "authConfigurations": [
     {
-    "authName": "default",
-    "instanceName": "default",
-    "verticleName": "net.wissel.salesforce.vertx.auth.SoapApi",
-    "serverURL": "login.salesforce.com",
-    "sfdcUser": "User",
-    "sfdcPassword": "pwd"
-    }
-    ],
+        "authName": "default",
+        "instanceName": "default",
+        "verticleName": "net.wissel.salesforce.vertx.auth.SoapApi",
+        "serverURL": "login.salesforce.com",
+        "sfdcUser": "User",
+        "sfdcPassword": "pwd"
+    }],
+    "consumerConfigurations": [
+    {
+        "verticleName": "net.wissel.salesforce.vertx.consumer.WebSocketConsumer",
+        "instanceName": "SampleSocket",
+        "eventBusAddress": "SFDC:SampleEvents",
+        "deployAsWorker": false,
+        "autoStart": true,
+        "providesRouterExtension": true,
+        "parameters":
+        {
+            "websocketname": "ui.data.changes"
+        },
+        "url": "/datachange/*"
+    },
+    {
+        "verticleName": "net.wissel.salesforce.vertx.consumer.ConsoleConsumer",
+        "instanceName": "SampleConsole",
+        "eventBusAddress": "SFDC:SampleEvents",
+        "deployAsWorker": false,
+        "autoStart": true,
+        "providesRouterExtension": false
+    }],
+    "dedupConfigurations": [
+    {
+        "instanceName": "redisDedup",
+        "verticleName": "net.wissel.salesforce.vertx.dedup.RedisDedup",
+        "serverURL": "some.address.local",
+        "sfdcUser": "User",
+        "sfdcPassword": "pwd"
+    }],
     "listenerConfigurations": [
     {
         "verticleName": "net.wissel.salesforce.vertx.listener.CometD",
@@ -26,34 +55,12 @@
         "listenSubject": "/event/DataChange__e",
         "eventBusAddresses": ["SFDC.SampleEvents2", "SFDC.SampleEvents"]
     }],
-    "consumerConfigurations": [
-    {
-            "verticleName": "net.wissel.salesforce.vertx.consumer.WebSocketConsumer",
-            "instanceName": "SampleSocket",
-            "eventBusAddress": "SFDC:SampleEvents",
-            "deployAsWorker": false,
-            "autoStart": true,
-            "providesRouterExtension": true,
-            "parameters":
-             {
-                "websocketname" : "ui.data.changes"
-             },
-            "url": "/datachange/*"
-        },
-        {
-            "verticleName": "net.wissel.salesforce.vertx.consumer.ConsoleConsumer",
-            "instanceName": "SampleConsole"
-            "eventBusAddress": "SFDC:SampleEvents",
-            "deployAsWorker": false,
-            "autoStart": true,
-            "providesRouterExtension": false
-        }],
-    "verticlesToLoad":
-    {},
     "parameters":
     {
         "key2": "value",
         "key": "value"
     },
-    "port": 8044
+    "port": 8044,
+    "verticlesToLoad":
+    {}
 }

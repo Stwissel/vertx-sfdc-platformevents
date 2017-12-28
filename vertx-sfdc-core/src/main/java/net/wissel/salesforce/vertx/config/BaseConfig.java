@@ -42,6 +42,11 @@ public class BaseConfig {
 	private String verticleName;
 
 	/**
+	 * Name that uniquely defines this instance(s) name
+	 */
+	private String instanceName;
+
+	/**
 	 * How many to deploy
 	 */
 	private int verticleInstanceCount = 1;
@@ -87,8 +92,15 @@ public class BaseConfig {
 	}
 
 	/**
+	 * @return the instanceName
+	 */
+	public String getInstanceName() {
+		return this.instanceName;
+	}
+
+	/**
 	 * Returns a specific parameter if existing
-	 * 
+	 *
 	 * @param paraName
 	 *            name of the parameter
 	 * @return the value or null
@@ -99,7 +111,7 @@ public class BaseConfig {
 
 	/**
 	 * Returns a specific parameter if existing
-	 * 
+	 *
 	 * @param paraName
 	 *            name of the parameter
 	 * @param defaultValue
@@ -148,7 +160,7 @@ public class BaseConfig {
 
 	/**
 	 * Was an additional parameter provided in the configuration
-	 * 
+	 *
 	 * @param paraName
 	 *            name to check
 	 * @return true/false if parameter exists
@@ -212,6 +224,16 @@ public class BaseConfig {
 	 */
 	public BaseConfig setEnabled(final boolean enabled) {
 		this.enabled = enabled;
+		return this;
+	}
+
+	/**
+	 * @param instanceName
+	 *            the instanceName to set
+	 * @return fluid - self
+	 */
+	public BaseConfig setInstanceName(final String instanceName) {
+		this.instanceName = instanceName;
 		return this;
 	}
 

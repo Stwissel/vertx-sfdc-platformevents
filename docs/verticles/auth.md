@@ -1,6 +1,6 @@
 # Authentication Verticles
 
-## You are here: [Home](/index.md):Verticles:[Authentication](auth.md)
+## You are here: [Home](../index.md):Verticles:[Authentication](auth.md)
 
 See also:
 
@@ -9,3 +9,5 @@ See also:
 - [Send result to websocket Verticle](websocket.md)
 - [Main/Setup Verticle](main.md)
 - [Deduplication Verticles](dedup.md)
+- [Redis Dedup Service](redis.md)
+- [Rest Consumer](restconsumer.md) (post/forward to rest endpoint)

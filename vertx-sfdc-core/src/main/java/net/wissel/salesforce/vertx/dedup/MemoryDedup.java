@@ -19,70 +19,43 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.salesforce.vertx.consumer;
+package net.wissel.salesforce.vertx.dedup;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
-import javax.xml.bind.DatatypeConverter;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
-import io.vertx.redis.RedisClient;
-import io.vertx.redis.RedisOptions;
 
 /**
+ * Checks the last 100 messages in memory to be exact duplicates of
+ * each other
  * @author swissel
  *
  */
-public class RedisDedup extends AbstractSFDCDedupVerticle {
-
-	// EX 86400 = Storing data in Redis for one full day 60*60*24h
-	// NX = Create only if not exist
-	private final static String DEFAULT_LIFESPAN = " NX EX 86400";
+public class MemoryDedup extends AbstractSFDCDedupVerticle {
+	
+	private final Queue<String> memoryQueue = new LinkedList<String>();
+	private static final int MAX_MEMBERS = 100;
 
 	/**
-	 * The Redis client holding data
+	 * @see net.wissel.salesforce.vertx.consumer.AbstractSFDCDedupVerticle#checkForDuplicate(io.vertx.core.Future, io.vertx.core.json.JsonObject)
 	 */
-	private RedisClient redisClient = null;
-
 	@Override
 	protected void checkForDuplicate(final Future<Void> failIfDuplicate, final JsonObject messageBody) {
-		final String key = this.getMd5(messageBody);
-		this.getRedisClient().set(key + RedisDedup.DEFAULT_LIFESPAN, key, result -> {
-			if (result.succeeded()) {
-				failIfDuplicate.complete();
-			} else {
-				failIfDuplicate.fail("Message already processes " + key);
+		final String candidate = messageBody.encode();
+		if (this.memoryQueue.contains(candidate)) {
+			// We have a duplicate and fail the future
+			failIfDuplicate.fail("Duplicate");
+		} else {
+			this.memoryQueue.offer(candidate);
+			// Limit the size of the queue
+			while (this.memoryQueue.size() > MAX_MEMBERS) {
+				this.memoryQueue.poll();
 			}
-		});
+			failIfDuplicate.complete();
+		}
+
 	}
 
-	/**
-	 * Get a reasonable key value for the object
-	 * 
-	 * @param j
-	 *            the Json Object
-	 * @return a MD5 String
-	 */
-	private String getMd5(final JsonObject j) {
-		String result = null;
-		try {
-			final MessageDigest md = MessageDigest.getInstance("MD5");
-			final byte[] bresult = md.digest(j.toBuffer().getBytes());
-			result = DatatypeConverter.printHexBinary(bresult);
-		} catch (final NoSuchAlgorithmException e) {
-			this.logger.fatal(e);
-		}
-		return result;
-	}
-
-	private RedisClient getRedisClient() {
-		if (this.redisClient == null) {
-			// TODO: Read redisClient configuration from condfig
-			final RedisOptions config = new RedisOptions().setHost("127.0.0.1");
-			this.redisClient = RedisClient.create(this.getVertx(), config);
-		}
-		return this.redisClient;
-	}
 }

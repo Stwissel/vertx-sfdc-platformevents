@@ -43,6 +43,7 @@ public class AppConfig {
 	public final Collection<AuthConfig> authConfigurations = new ArrayList<AuthConfig>();
 	public final Collection<ListenerConfig> listenerConfigurations = new ArrayList<ListenerConfig>();
 	public final Collection<ConsumerConfig> consumerConfigurations = new ArrayList<ConsumerConfig>();
+	public final Collection<DedupConfig> dedupConfigurations = new ArrayList<DedupConfig>();
 	public final Map<String, Map<String, Object>> verticlesToLoad = new HashMap<String, Map<String, Object>>();
 	public final Map<String, String> parameters = new HashMap<String, String>();
 	public String proxy = null; // Default for entire Verticles if set
@@ -66,6 +67,16 @@ public class AppConfig {
 	 */
 	public final AppConfig addConsumerConfig(final ConsumerConfig consConf) {
 		this.consumerConfigurations.add(consConf);
+		return this;
+	}
+	
+	/**
+	 * 
+	 * @param ddConf DedupConfig config to ass
+	 * @return fluid AppConfig
+	 */
+	public final AppConfig addDedupConfig(final DedupConfig ddConf) {
+		this.dedupConfigurations.add(ddConf);
 		return this;
 	}
 

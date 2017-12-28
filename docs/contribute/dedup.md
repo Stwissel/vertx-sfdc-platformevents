@@ -1,6 +1,6 @@
 # Write your own Deduplication
 
-## You are here: [Home](/index.md):Write your own:[Deduplication](dedup.md)
+## You are here: [Home](../index.md):Write your own:[Deduplication](dedup.md)
 
 See also:
 - Write your own [Listener](listener.md)
