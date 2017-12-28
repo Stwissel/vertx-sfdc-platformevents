@@ -39,7 +39,11 @@ public class MemoryDedup extends AbstractSFDCDedupVerticle {
 	private static final int MAX_MEMBERS = 100;
 
 	/**
-	 * @see net.wissel.salesforce.vertx.consumer.AbstractSFDCDedupVerticle#checkForDuplicate(io.vertx.core.Future, io.vertx.core.json.JsonObject)
+	 * Actual routine that check for "duplication". Could be anything, depending on use case.
+	 * The future fails when a duplicate is found and succeeds when it is not.
+	 * This allows for async execution
+	 * 
+	 * @see net.wissel.salesforce.vertx.dedup.AbstractSFDCDedupVerticle#checkForDuplicate(io.vertx.core.Future, io.vertx.core.json.JsonObject)
 	 */
 	@Override
 	protected void checkForDuplicate(final Future<Void> failIfDuplicate, final JsonObject messageBody) {
