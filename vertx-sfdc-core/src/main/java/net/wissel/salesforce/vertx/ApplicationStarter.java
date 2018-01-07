@@ -454,6 +454,7 @@ public class ApplicationStarter extends AbstractVerticle {
 		this.router.post(apiRoute + "/shutdown").handler(this::shutdownHandler);
 
 		// Static pages
+		//TODO: define place for static resources
 		this.router.route().handler(StaticHandler.create());
 
 		// Launch the server
