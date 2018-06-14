@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.wissel.salesforce</groupId>
 	<artifactId>net.wissel.salesforce.vertx</artifactId>
-	<version>0.3.1</version>
+	<version>0.3.2</version>
 	<name>Vert.x modules for Salesforce</name>
 	<description>Verticles that connect to Salesforce Platform events and API</description>
 	<url>https://stwissel.github.io/vertx-sfdc-platformevents</url>
@@ -17,8 +17,8 @@
 	<properties>
 		<!-- Software versions -->
 		<java.version>1.8</java.version>
-		<vertx.version>3.5.0</vertx.version>
-		<joda.version>2.9.9</joda.version>
+		<vertx.version>3.5.2</vertx.version>
+		<joda.version>2.10</joda.version>
 		<mustache.version>0.9.5</mustache.version>
 		<junit.version>4.12</junit.version>
 		<lorem.version>2.1</lorem.version>

@@ -5,6 +5,15 @@
 Collection of verticles that enable interaction with the Salesforce API.<br />
 Artifacts on [Maven Central](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22net.wissel.salesforce%22)
 
+Eclipse [vert.x](http://vertx.io) is a lightweight Java framework for micro services architectures.
+It features an event bus that allows polyglot vert.x modules (called Verticles) to communicate
+with each other. This allows building well scaling modules for API driven application.
+
+There is extensive documentation available at the Eclipse [vert.x](http://vertx.io) project page.
+
+## Sample application
+A sample application including the corresponding Salesforce artifacts is available [here](https://github.com/stwissel/sfdc-vertx-sample)
+
 ## Overview
 ![Flow of SFDC Verticles](flow.png)
 
