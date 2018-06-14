@@ -1,4 +1,9 @@
 [ ![Codeship Status for Stwissel/vertx-sfdc-platformevents](https://app.codeship.com/projects/65890500-b1cd-0135-81e1-7645507f84f6/status?branch=master)](https://app.codeship.com/projects/257955)
+[![Known Vulnerabilities](https://snyk.io/test/github/Stwissel/vertx-sfdc-platformevents/badge.svg?targetFile=pom.xml)](https://snyk.io/test/github/Stwissel/vertx-sfdc-platformevents?targetFile=pom.xml)
+[![Known Vulnerabilities](https://snyk.io/test/github/Stwissel/vertx-sfdc-platformevents/badge.svg?targetFile=vertx-sfdc-core%2Fpom.xml)](https://snyk.io/test/github/Stwissel/vertx-sfdc-platformevents?targetFile=vertx-sfdc-core%2Fpom.xml)
+[![Known Vulnerabilities](https://snyk.io/test/github/Stwissel/vertx-sfdc-platformevents/badge.svg?targetFile=vertx-sfdc-redis%2Fpom.xml)](https://snyk.io/test/github/Stwissel/vertx-sfdc-platformevents?targetFile=vertx-sfdc-redis%2Fpom.xml)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b6619f054b1d4535a9c9a5235928da4c)](https://www.codacy.com/app/Stwissel/vertx-sfdc-platformevents?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Stwissel/vertx-sfdc-platformevents&amp;utm_campaign=Badge_Grade)
+
 
 # [Salesforce vert.x integration](https://stwissel.github.io/vertx-sfdc-platformevents)
 
