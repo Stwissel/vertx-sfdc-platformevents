@@ -24,6 +24,7 @@ package net.wissel.salesforce.vertx;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
@@ -83,6 +84,12 @@ public abstract class AbstractSFDCVerticle extends AbstractVerticle implements S
 				});
 				this.stopListening(stopListenFuture);
 			}
+		});
+		
+		// Listen to incoming configuration changes
+		eb.consumer(Constants.BUS_CONFIGUPDATE, message -> {
+		    final JsonObject newConfig = (JsonObject) message.body();
+		    Utils.mergeObjects(this.config(), newConfig, JsonMergeOptions.REMOVE_MISSING);
 		});
 
 		// And we are done

@@ -11,6 +11,9 @@ with each other. This allows building well scaling modules for API driven applic
 
 There is extensive documentation available at the Eclipse [vert.x](http://vertx.io) project page.
 
+## Change Log
+List of [changes](changelog.md) in reverse order
+
 ## Sample application
 A sample application including the corresponding Salesforce artifacts is available [here](https://github.com/stwissel/sfdc-vertx-sample)
 
@@ -77,13 +80,13 @@ Add this dependencies to your `pom.xml`:
 <dependency>
 	<groupId>net.wissel.salesforce</groupId>
 	<artifactId>vertx-sfdc-core</artifactId>
-	<version>0.3.1</version>
+	<version>0.3.3</version>
 </dependency>
 <!-- Optional for deduplication service if Redis is your choice -->
 <dependency>
 	<groupId>net.wissel.salesforce</groupId>
 	<artifactId>vertx-sfdc-redis</artifactId>
-	<version>0.3.1</version>
+	<version>0.3.3</version>
 </dependency>
 ```
 

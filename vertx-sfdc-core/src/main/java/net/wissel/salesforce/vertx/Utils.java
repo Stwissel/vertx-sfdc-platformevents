@@ -23,6 +23,7 @@ package net.wissel.salesforce.vertx;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -125,5 +126,36 @@ public class Utils {
 		});
 		return result;
 	}
+
+	/**
+	 * Merge two Json objects mainly used for config object updates
+	 * Optional removes keys no longer contained in the incoming JSON
+	 * 
+	 * @param baseJSON
+	 * @param newJSON
+	 */
+    public static void mergeObjects(final JsonObject baseJSON, final JsonObject newJSON, JsonMergeOptions mergeHow) {
+        
+        if (baseJSON == null || newJSON == null) {
+            return;
+        }
+        
+        newJSON.stream().forEach(j -> {
+            baseJSON.put(j.getKey(), j.getValue());
+        });
+        
+        if (mergeHow == JsonMergeOptions.REMOVE_MISSING) {
+            final Collection<String> morituri = new ArrayList<>();
+            baseJSON.stream().forEach(j -> {
+                if (!newJSON.containsKey(j.getKey())) {
+                    morituri.add(j.getKey());
+                }
+            });
+            morituri.forEach(m -> {
+                baseJSON.remove(m);
+            });
+        }
+        
+    }
 
 }
