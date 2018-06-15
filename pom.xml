@@ -22,6 +22,7 @@
 		<mustache.version>0.9.5</mustache.version>
 		<junit.version>4.12</junit.version>
 		<lorem.version>2.1</lorem.version>
+		<jacoco.version>0.8.1</jacoco.version>
 		<!-- Miscelaneous settings -->
 		<project.autorelease>true</project.autorelease>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -146,6 +147,12 @@
 						sync to Central Repository will follow -->
 					<autoReleaseAfterClose>${project.autorelease}</autoReleaseAfterClose>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
 			</plugin>
 
 		</plugins>

@@ -17,7 +17,7 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-	
+
 	<build>
 		<resources>
 			<resource>
