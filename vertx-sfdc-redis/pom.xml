@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>net.wissel.salesforce</groupId>
-		<version>0.3.2</version>
+		<version>0.3.4</version>
 		<artifactId>net.wissel.salesforce.vertx</artifactId>
 	</parent>
 	<artifactId>vertx-sfdc-redis</artifactId>
@@ -39,6 +39,22 @@
 			<artifactId>vertx-sfdc-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-unit</artifactId>
+			<version>${vertx.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 </project>

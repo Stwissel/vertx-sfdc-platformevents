@@ -12,7 +12,7 @@ Check the [full documentation](https://stwissel.github.io/vertx-sfdc-platformeve
 
 ## Current released version
 
-The current released version is `0.3.1`<br />
+The current released version is `0.3.3`<br />
 Development might have newer snapshots
 
 ## Available Verticles
@@ -33,19 +33,21 @@ Add this dependencies to your `pom.xml`:
 <dependency>
 	<groupId>net.wissel.salesforce</groupId>
 	<artifactId>vertx-sfdc-core</artifactId>
-	<version>0.3.1</version>
+	<version>0.3.3</version>
 </dependency>
 <!-- Optional for deduplication service if Redis is your choice -->
 <dependency>
 	<groupId>net.wissel.salesforce</groupId>
 	<artifactId>vertx-sfdc-redis</artifactId>
-	<version>0.3.1</version>
+	<version>0.3.3</version>
 </dependency>
 ```
 Check the [full documentation](https://stwissel.github.io/vertx-sfdc-platformevents)!
 
 Artifacts on [Maven Central](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22net.wissel.salesforce%22)
 
+## Change Log
+List of [changes](https://stwissel.github.io/vertx-sfdc-platformevents/changelog.html) in reverse order
 ## Issues and feedback
 
 I would love to hear about your implementation or ideas or challenges, so 

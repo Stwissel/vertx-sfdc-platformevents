@@ -89,6 +89,7 @@ public class ApplicationStarter extends AbstractVerticle {
 	private AppConfig appConfig = null;
 	private Router router = null;
 	private final Date startDate = new Date();
+	private ConfigRetriever retriever = null;
 
 	/**
 	 * @see io.vertx.core.AbstractVerticle#start(io.vertx.core.Future)
@@ -99,16 +100,26 @@ public class ApplicationStarter extends AbstractVerticle {
 		this.router = Router.router(this.getVertx());
 
 		// Load config and verticles and signal back that we are done
+		final Future<Void> configLoad = Future.future();
 		final Future<Void> verticleLoad = Future.future();
-		verticleLoad.setHandler(ar -> {
+		
+		verticleLoad.setHandler(vl -> {
+		    if (vl.succeeded()) {
+		        this.startWebServer(startFuture);
+		    } else {
+		        startFuture.fail(vl.cause());
+		    }
+		});
+		
+		configLoad.setHandler(ar -> {
 			if (ar.succeeded()) {
-				this.startWebServer(startFuture);
+			    this.loadVerticles(verticleLoad);
 			} else {
 				startFuture.fail(ar.cause());
 			}
 		});
 
-		this.loadAppConfig(verticleLoad);
+		this.loadAppConfig(configLoad);
 
 	}
 
@@ -187,32 +198,32 @@ public class ApplicationStarter extends AbstractVerticle {
 	/**
 	 * Read configuration, then hand over to loadVerticles
 	 *
-	 * @param verticleLoad
+	 * @param appConfigLoad
 	 *            - Future to report completions
 	 */
-	private void loadAppConfig(final Future<Void> verticleLoad) {
+	private void loadAppConfig(final Future<Void> appConfigLoad) {
 		final ConfigStoreOptions fileConfig = new ConfigStoreOptions().setType("file").setFormat("json")
 				.setConfig(new JsonObject().put("path", this.getOptionFileName()));
 		final ConfigRetrieverOptions options = new ConfigRetrieverOptions().addStore(fileConfig);
-		final ConfigRetriever retriever = ConfigRetriever.create(this.getVertx(), options);
+		this.retriever = ConfigRetriever.create(this.getVertx(), options);
 
-		retriever.getConfig(ar -> {
+		this.retriever.getConfig(ar -> {
 			if (ar.failed()) {
-				verticleLoad.fail(ar.cause());
+				appConfigLoad.fail(ar.cause());
 			} else {
 				final JsonObject payload = ar.result();
 				try {
 					this.addParametersFromEnvironment(payload);
-					this.appConfig = payload.mapTo(AppConfig.class);
-					this.loadVerticles(verticleLoad);
+					AppConfig newConfig = payload.mapTo(AppConfig.class);
+					if (!newConfig.equals(this.appConfig))  {
+					    this.appConfig = newConfig;
+					    // Hot reload for config changes
+		                this.vertx.eventBus().publish(Constants.BUS_CONFIGUPDATE, payload);
+					}
+					this.loadVerticles(appConfigLoad);
 				} catch (final Throwable t) {
-					verticleLoad.fail(t);
-					return;
-				}
-				// Hot reload for config changes
-				// retriever.listen(change -> {
-				// // TODO: implement hot reload
-				// });
+					appConfigLoad.fail(t);
+				}				
 			}
 		});
 

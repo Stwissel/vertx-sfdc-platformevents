@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.wissel.salesforce</groupId>
 	<artifactId>net.wissel.salesforce.vertx</artifactId>
-	<version>0.3.2</version>
+	<version>0.3.4</version>
 	<name>Vert.x modules for Salesforce</name>
 	<description>Verticles that connect to Salesforce Platform events and API</description>
 	<url>https://stwissel.github.io/vertx-sfdc-platformevents</url>
@@ -17,11 +17,12 @@
 	<properties>
 		<!-- Software versions -->
 		<java.version>1.8</java.version>
-		<vertx.version>3.5.2</vertx.version>
+		<vertx.version>3.5.4</vertx.version>
 		<joda.version>2.10</joda.version>
 		<mustache.version>0.9.5</mustache.version>
 		<junit.version>4.12</junit.version>
 		<lorem.version>2.1</lorem.version>
+		<jacoco.version>0.8.1</jacoco.version>
 		<!-- Miscelaneous settings -->
 		<project.autorelease>true</project.autorelease>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -146,6 +147,12 @@
 						sync to Central Repository will follow -->
 					<autoReleaseAfterClose>${project.autorelease}</autoReleaseAfterClose>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
 			</plugin>
 
 		</plugins>

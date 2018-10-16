@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>net.wissel.salesforce</groupId>
-		<version>0.3.2</version>
+		<version>0.3.4</version>
 		<artifactId>net.wissel.salesforce.vertx</artifactId>
 	</parent>
 	<artifactId>vertx-sfdc-core</artifactId>
@@ -17,7 +17,7 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-	
+
 	<build>
 		<resources>
 			<resource>

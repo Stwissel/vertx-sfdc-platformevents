@@ -21,39 +21,14 @@
  */
 package net.wissel.salesforce.vertx;
 
-public interface Constants {
-	int TLS_PORT = 443;	
-	String API_ROOT = "/api";
-	String AUTH_HEADER = "Authorization";
-	String AUTH_RESET = "RESET";
-	String AUTH_SOAP_LOGIN = "/services/Soap/u/41.0/";
-	String AUTH_SOAP_TEMPLATE = "/logintemplate.xml";
-	// Messagebus constants	
-	String BUS_AUTHREQUEST = "SFDC:Auth:";
-    String BUS_CONFIGUPDATE = "SFDC:Config";
-	String BUS_DEDUP_PREFIX = "SFDC:Dedup:";
-	String BUS_FINAL_DESTINATION = "SFDCFinalDestination";
-	String BUS_START_STOP = "SFDC:CommandLine";
-	String CONFIG_AUTHNAME = "authName";
-	String CONFIG_AUTOSTART = "autoStart";
-	String CONFIG_INSTANCENAME = "instanceName";
-	String CONFIG_PORT = "Port";
-	String CONTENT_HEADER = "Content-Type";
-	String CONTENT_TYPE_JSON = "application/json;charset=UTF-8";
-	String DEFAULT_AUTH_VERTICLE = "net.wissel.salesforce.vertx.auth.SoapApi";
-	String DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
-	String DEFAULT_LISTENER = "net.wissel.salesforce.vertx.listener.CometD";
-	String DELIMITER = ":";
-	String MESSAGE_ISSTARTUP = "StartupMessage";
-	String MESSAGE_START = "Rock it cowboys";
-	String MESSAGE_STOP = "Party is over";
-	String OPTION_FILE_NAME = "SFDCOptions.json";
-	String PARAM_STYLESHEET = "template";
-	String PRODUCTION = "login.salesforce.com";
-	String SANDBOX = "test.salesforce.com";
-	String TRUESTRING = "True";
-	String URL_CONNECT = "/cometd/41.0/connect";
-	String URL_HANDSHAKE = "/cometd/43.0/handshake";
-	String URL_SUBSCRIBE = "/cometd/43.0/subscribe";
+/**
+ * Define how the merging of options will be handled
+ * @author swissel
+ *
+ */
+public enum JsonMergeOptions {
+    
+    PRESERVE_MISSING,
+    REMOVE_MISSING
 
 }
