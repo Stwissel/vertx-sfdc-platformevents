@@ -54,6 +54,8 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import net.wissel.salesforce.vertx.auth.AuthInfo;
+import net.wissel.salesforce.vertx.auth.AuthInfoCodec;
 import net.wissel.salesforce.vertx.config.AppConfig;
 import net.wissel.salesforce.vertx.config.AuthConfig;
 import net.wissel.salesforce.vertx.config.BaseConfig;
@@ -202,6 +204,11 @@ public class ApplicationStarter extends AbstractVerticle {
 	 *            - Future to report completions
 	 */
 	private void loadAppConfig(final Future<Void> appConfigLoad) {
+	    
+	    //Register codec for Authentication scheme
+	    this.vertx.eventBus().registerDefaultCodec(AuthInfo.class, new AuthInfoCodec());
+	    
+	    
 		final ConfigStoreOptions fileConfig = new ConfigStoreOptions().setType("file").setFormat("json")
 				.setConfig(new JsonObject().put("path", this.getOptionFileName()));
 		final ConfigRetrieverOptions options = new ConfigRetrieverOptions().addStore(fileConfig);

@@ -73,7 +73,6 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 			return this;
 		}
 		final EventBus eb = this.getVertx().eventBus();
-		eb.registerDefaultCodec(AuthInfo.class, new AuthInfoCodec());
 		final String address = Constants.BUS_AUTHREQUEST + this.getAuthConfig().getAuthName();
 		this.consumer = eb.consumer(address, handler -> {
 			// Check for a reset header, if found reset the cached connection
