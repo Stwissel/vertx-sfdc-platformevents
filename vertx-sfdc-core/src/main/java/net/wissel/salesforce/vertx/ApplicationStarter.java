@@ -207,8 +207,7 @@ public class ApplicationStarter extends AbstractVerticle {
 	    
 	    //Register codec for Authentication scheme
 	    this.vertx.eventBus().registerDefaultCodec(AuthInfo.class, new AuthInfoCodec());
-	    
-	    
+	     
 		final ConfigStoreOptions fileConfig = new ConfigStoreOptions().setType("file").setFormat("json")
 				.setConfig(new JsonObject().put("path", this.getOptionFileName()));
 		final ConfigRetrieverOptions options = new ConfigRetrieverOptions().addStore(fileConfig);
