@@ -37,7 +37,7 @@ public interface Constants {
 	String CONFIG_AUTHNAME = "authName";
 	String CONFIG_AUTOSTART = "autoStart";
 	String CONFIG_INSTANCENAME = "instanceName";
-	String CONFIG_PORT = "Port";
+	String CONFIG_PORT = "PORT";
 	String CONTENT_HEADER = "Content-Type";
 	String CONTENT_TYPE_JSON = "application/json;charset=UTF-8";
 	String DEFAULT_AUTH_VERTICLE = "net.wissel.salesforce.vertx.auth.SoapApi";

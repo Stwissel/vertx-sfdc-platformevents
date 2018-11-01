@@ -477,7 +477,8 @@ public class ApplicationStarter extends AbstractVerticle {
 
 		// Launch the server
 		this.logger.info("Listening on port " + Integer.toString(this.appConfig.port));
-		this.vertx.createHttpServer().requestHandler(this.router::accept).listen(this.appConfig.port);
+		this.vertx.createHttpServer().requestHandler(this.router::accept).listen(this.appConfig.port);		
+		System.out.println("Web Server listening on "+String.valueOf(this.appConfig.port));
 
 		// Finally done
 		startFuture.complete();
