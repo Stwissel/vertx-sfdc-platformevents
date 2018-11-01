@@ -40,6 +40,7 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Verticle;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.ReplyException;
@@ -206,7 +207,8 @@ public class ApplicationStarter extends AbstractVerticle {
 	private void loadAppConfig(final Future<Void> appConfigLoad) {
 	    
 	    //Register codec for Authentication scheme
-	    this.vertx.eventBus().registerDefaultCodec(AuthInfo.class, new AuthInfoCodec());
+	    final Vertx vertx = this.getVertx();
+	    vertx.eventBus().registerDefaultCodec(AuthInfo.class, new AuthInfoCodec());
 	     
 		final ConfigStoreOptions fileConfig = new ConfigStoreOptions().setType("file").setFormat("json")
 				.setConfig(new JsonObject().put("path", this.getOptionFileName()));
@@ -224,7 +226,7 @@ public class ApplicationStarter extends AbstractVerticle {
 					if (!newConfig.equals(this.appConfig))  {
 					    this.appConfig = newConfig;
 					    // Hot reload for config changes
-		                this.vertx.eventBus().publish(Constants.BUS_CONFIGUPDATE, payload);
+		                vertx.eventBus().publish(Constants.BUS_CONFIGUPDATE, payload);
 					}
 					this.loadVerticles(appConfigLoad);
 				} catch (final Throwable t) {
@@ -421,7 +423,7 @@ public class ApplicationStarter extends AbstractVerticle {
 				this.loadedVerticles.forEach(moriturus -> {
 					this.logger.info("Shutting down " + moriturus);
 					final Future<Void> curFuture = Future.future();
-					this.vertx.undeploy(moriturus, curFuture.completer());
+					this.getVertx().undeploy(moriturus, curFuture.completer());
 					downedVerticles.add(curFuture);
 				});
 
@@ -450,7 +452,7 @@ public class ApplicationStarter extends AbstractVerticle {
 
 		// Sanitize the parameters and capture cookies / headers
 		// TODO:
-		// this.router.route().handler(RequestSanitizer.create(this.vertx));
+		// this.router.route().handler(RequestSanitizer.create(this.getVertx()));
 
 		final String apiRoute = this.config().getString(Constants.API_ROOT, Constants.API_ROOT);
 
@@ -476,7 +478,7 @@ public class ApplicationStarter extends AbstractVerticle {
 
 		// Launch the server
 		this.logger.info("Listening on port " + Integer.toString(this.appConfig.port));
-		this.vertx.createHttpServer().requestHandler(this.router::accept).listen(this.appConfig.port);		
+		this.getVertx().createHttpServer().requestHandler(this.router::accept).listen(this.appConfig.port);		
 		System.out.println("Web Server listening on "+String.valueOf(this.appConfig.port));
 
 		// Finally done

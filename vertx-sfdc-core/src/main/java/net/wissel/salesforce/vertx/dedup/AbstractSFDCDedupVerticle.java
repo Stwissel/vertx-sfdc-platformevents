@@ -52,7 +52,7 @@ public abstract class AbstractSFDCDedupVerticle extends AbstractSFDCVerticle {
 	public SFDCVerticle startListening() {
 		this.logger.info("Start listening:" + this.getClass().getName());
 		// Listen on the event bus
-		final EventBus eb = this.vertx.eventBus();
+		final EventBus eb = this.getVertx().eventBus();
 		this.dedupConsumer = eb.consumer(Constants.BUS_DEDUP_PREFIX + this.getDedupConfig().getInstanceName());
 		this.logger.info(this.getClass().getName() + " listening on " + this.dedupConsumer.address());
 		this.dedupConsumer.handler(this::processIncoming);

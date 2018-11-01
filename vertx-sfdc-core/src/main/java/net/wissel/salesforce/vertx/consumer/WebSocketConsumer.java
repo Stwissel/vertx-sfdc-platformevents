@@ -40,7 +40,7 @@ public class WebSocketConsumer extends AbstractSFDCConsumer implements SFDCRoute
 	public SFDCRouterExtension addRoutes(final Router router) {
 		// Socket handler
 		final SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
-		final SockJSHandler sockJSHandler = SockJSHandler.create(this.vertx, options);
+		final SockJSHandler sockJSHandler = SockJSHandler.create(this.getVertx(), options);
 
 		final BridgeOptions bo = new BridgeOptions()
 				.addOutboundPermitted(new PermittedOptions().setAddress(this.getWebSocketName()));

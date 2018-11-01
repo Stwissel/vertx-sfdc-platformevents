@@ -197,7 +197,7 @@ public class RestConsumer extends AbstractSFDCConsumer {
 			// TODO: more options
 			wco.setUserAgent("SFDC VertX REST Provider");
 			wco.setTryUseCompression(true);
-			this.client = WebClient.create(this.vertx, wco);
+			this.client = WebClient.create(this.getVertx(), wco);
 		}
 		return this.client;
 	}

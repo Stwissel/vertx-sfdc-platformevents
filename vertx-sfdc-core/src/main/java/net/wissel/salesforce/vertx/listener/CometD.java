@@ -274,7 +274,7 @@ public class CometD extends AbstractSFDCVerticle {
 			// TODO: more options
 			wco.setUserAgent("SDFC VertX EventBus Client");
 			wco.setTryUseCompression(true);
-			this.client = WebClient.create(this.vertx, wco);
+			this.client = WebClient.create(this.getVertx(), wco);
 		}
 		return this.client;
 	}

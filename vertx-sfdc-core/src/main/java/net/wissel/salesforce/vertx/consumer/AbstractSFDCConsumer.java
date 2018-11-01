@@ -43,7 +43,7 @@ public abstract class AbstractSFDCConsumer extends AbstractSFDCVerticle {
 	public SFDCVerticle startListening() {
 		this.logger.info("Start listening:" + this.getClass().getName());
 		// Listen on the event bus
-		final EventBus eb = this.vertx.eventBus();
+		final EventBus eb = this.getVertx().eventBus();
 		this.consumer = eb.consumer(this.getConsumerConfig().getEventBusAddress());
 		this.logger.info(this.getClass().getName() + " listening on " + this.consumer.address());
 		this.consumer.handler(this::processIncoming);

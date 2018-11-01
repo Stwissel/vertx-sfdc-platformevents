@@ -68,7 +68,7 @@ public class SoapApi extends AbstractAuth {
 		}
 		wco.setUserAgent("SDFC VertX Authenticator");
 		wco.setTryUseCompression(true);
-		final WebClient authClient = WebClient.create(this.vertx, wco);
+		final WebClient authClient = WebClient.create(this.getVertx(), wco);
 		final Buffer body = this.getAuthBody(this.getAuthConfig().getSfdcUser(),
 				this.getAuthConfig().getSfdcPassword());
 		if (!this.shuttingDown && !this.shutdownCompleted) {
