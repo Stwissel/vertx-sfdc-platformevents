@@ -17,7 +17,7 @@
 	<properties>
 		<!-- Software versions -->
 		<java.version>1.8</java.version>
-		<vertx.version>3.9.0</vertx.version>
+		<vertx.version>4.5.11</vertx.version>
 		<joda.version>2.10</joda.version>
 		<mustache.version>0.9.5</mustache.version>
 		<junit.version>4.12</junit.version>
