@@ -21,24 +21,44 @@
  */
 package net.wissel.salesforce.vertx;
 
+import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.DeliveryOptions;
+import net.wissel.salesforce.vertx.auth.AuthInfo;
+import net.wissel.salesforce.vertx.auth.AuthInfoCodec;
+
 /**
- * Helper classes to facilitate testing of our verticles
- * Mainly endpoint / source simulators
- * 
- * @author swissel
- *
+ * Shared helpers for tests that deploy SFDC verticles standalone,
+ * without the ApplicationStarter doing the plumbing
  */
-public class TestUtilities {
-	
-	// Loads a HTTP server that simply echos everything
-	// with http 200 responses
-	public static void loadEchoServer(int Port) {
-		
-	}
-	
-	// Loads a verticle that simulates an Salesforce CometD source
-	public static void loadEventSource(int Port) {
-		
+public final class TestUtilities {
+
+	/**
+	 * Standalone deployments need the AuthInfo codec that
+	 * ApplicationStarter registers in production
+	 *
+	 * @param vertx the test Vertx instance
+	 */
+	public static void registerAuthCodec(final Vertx vertx) {
+		try {
+			vertx.eventBus().registerDefaultCodec(AuthInfo.class, new AuthInfoCodec());
+		} catch (final IllegalStateException e) {
+			// Already registered on this Vertx instance - fine
+		}
 	}
 
+	/**
+	 * SFDC verticles deploy passive and wait for the start signal.
+	 * This sends the same signal ApplicationStarter sends on startup
+	 *
+	 * @param vertx the test Vertx instance
+	 */
+	public static void startAllListeners(final Vertx vertx) {
+		final DeliveryOptions delOps = new DeliveryOptions().addHeader(Constants.MESSAGE_ISSTARTUP,
+				Constants.TRUESTRING);
+		vertx.eventBus().publish(Constants.BUS_START_STOP, Constants.MESSAGE_START, delOps);
+	}
+
+	private TestUtilities() {
+		// Helpers only
+	}
 }

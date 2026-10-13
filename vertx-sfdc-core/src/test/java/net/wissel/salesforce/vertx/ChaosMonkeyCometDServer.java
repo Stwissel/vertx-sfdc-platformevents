@@ -21,109 +21,150 @@
  */
 package net.wissel.salesforce.vertx;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ThreadLocalRandom;
 
-import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 /**
- * Module to allow to test the CometD listener Reacts to all steps the cometD
- * server does with good or bad results. Generates semi random content
- * 
- * @author stw
- *
+ * Local mock of the Salesforce CometD endpoints, serving the same
+ * paths the CometD listener uses in production. Long-poll responses
+ * are scripted through a queue; with a chaosRatio above zero it
+ * randomly answers with a 500 instead
  */
-public class ChaosMonkeyCometDServer extends AbstractVerticle {
+public class ChaosMonkeyCometDServer {
 
-	public static final int chaosMonkeyPort = 4561;
+	private static final String CLIENT_ID = "monkey1";
 
-	// Ratio 1:chaosRatio the server will throw
-	// errors instead of returning correct results
-	// 0 = no errors, 1 = 50%, 10 = 10% ect.
-	private int chaosRatio = 10;
-	private Router router;
-	private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+	private final Deque<JsonArray> scriptedPollResponses = new ConcurrentLinkedDeque<>();
+	private final Vertx vertx;
+	private final int chaosRatio;
+	private HttpServer server;
 
-	/**
-	 * @see io.vertx.core.AbstractVerticle#start(io.vertx.core.Future)
-	 */
-	@Override
-	public void start(Future<Void> startFuture) throws Exception {
-
-		// Routes we server simulating the login and CometD endpoints
-		this.router = Router.router(this.getVertx());
-		this.router.route(Constants.AUTH_SOAP_LOGIN).handler(this::loginHandler);
-		this.router.route(Constants.URL_CONNECT).handler(this::connectHandler);
-		this.router.route(Constants.URL_HANDSHAKE).handler(this::handshakeHandler);
-		this.router.route(Constants.URL_SUBSCRIBE).handler(this::subscribeHandler);
-		this.logger.info(this.getClass().getName() + " listening on port " + chaosMonkeyPort);
-		this.getVertx().createHttpServer().requestHandler(this.router::accept).listen(chaosMonkeyPort);
-		startFuture.complete();
-	}
-
-	private void loginHandler(final RoutingContext ctx) {
-		if (this.sendValidResponse()) {
-			//TODO: implement
-			ctx.response().end("loginHandler");
-		} else {
-			ctx.response().setStatusCode(500).end("Chaos Monkey says hello!");
-		}
-	}
-
-	private void connectHandler(final RoutingContext ctx) {
-		if (this.sendValidResponse()) {
-			//TODO: implement
-			ctx.response().end("connectHandler");
-		} else {
-			ctx.response().setStatusCode(500).end("Chaos Monkey says hello!");
-		}
-	}
-
-	private void handshakeHandler(final RoutingContext ctx) {
-		if (this.sendValidResponse()) {
-			//TODO: implement
-			ctx.response().end("handshakeHandler");
-		} else {
-			ctx.response().setStatusCode(500).end("Chaos Monkey says hello!");
-		}
-	}
-
-	private void subscribeHandler(final RoutingContext ctx) {
-		if (this.sendValidResponse()) {
-			//TODO: implement
-			ctx.response().end("subscribeHandler");
-		} else {
-			ctx.response().setStatusCode(500).end("Chaos Monkey says hello!");
-		}
+	public ChaosMonkeyCometDServer(final Vertx vertx) {
+		this(vertx, 0);
 	}
 
 	/**
-	 * Chaos monkey function that decides if a request will get a proper return
-	 * or throw an error
-	 * 
-	 * @return shall the reply be valid
+	 * @param vertx the test Vertx instance
+	 * @param chaosRatio roughly one in chaosRatio requests fails with
+	 *            a 500; zero disables chaos for deterministic tests
 	 */
-	private boolean sendValidResponse() {
-
-		// If chaosRatio is 0 we always send valid responses
-		if (this.chaosRatio <= 0) {
-			return true;
-		}
-
-		List<Boolean> result = new ArrayList<>();
-		for (int i = 0; i < this.chaosRatio; i++) {
-			result.add(true); // All good responses
-		}
-		result.add(false); // One Error
-
-		int judge = (int) Math.random() * this.chaosRatio;
-
-		return result.get(judge);
+	public ChaosMonkeyCometDServer(final Vertx vertx, final int chaosRatio) {
+		this.vertx = vertx;
+		this.chaosRatio = chaosRatio;
 	}
 
+	public Future<HttpServer> start() {
+		return this.vertx.createHttpServer().requestHandler(request -> {
+			if (this.chaosStrikes()) {
+				request.response().setStatusCode(500).end("Chaos monkey strikes");
+				return;
+			}
+			switch (request.path()) {
+				case Constants.URL_HANDSHAKE -> this.handshake(request);
+				case Constants.URL_CONNECT -> this.connect(request);
+				case Constants.URL_SUBSCRIBE -> this.subscribe(request);
+				default -> request.response().setStatusCode(404).end("Unknown path " + request.path());
+			}
+		}).listen(0).andThen(result -> this.server = result.result());
+	}
+
+	public int actualPort() {
+		return this.server.actualPort();
+	}
+
+	/**
+	 * Next long poll answers with the given events plus a successful
+	 * connect status, the way Salesforce delivers platform events
+	 *
+	 * @param events one or more Bayeux event objects
+	 */
+	public void enqueueEvents(final JsonObject... events) {
+		final JsonArray response = new JsonArray();
+		for (final JsonObject event : events) {
+			response.add(event);
+		}
+		response.add(new JsonObject().put("channel", "/meta/connect").put("successful", true));
+		this.scriptedPollResponses.add(response);
+	}
+
+	/**
+	 * Next long poll reports an unsuccessful connect, which makes the
+	 * listener end its loop - keeps test teardown from hanging
+	 */
+	public void enqueueEndOfLoop() {
+		this.scriptedPollResponses.add(new JsonArray()
+				.add(new JsonObject().put("channel", "/meta/connect").put("successful", false)));
+	}
+
+	/**
+	 * Convenience to build an event the way the listener parses it
+	 */
+	public static JsonObject event(final String channel, final JsonObject payload, final int replayId) {
+		return new JsonObject()
+				.put("channel", channel)
+				.put("data", new JsonObject()
+						.put("payload", payload)
+						.put("event", new JsonObject().put("replayId", replayId)));
+	}
+
+	private boolean chaosStrikes() {
+		return (this.chaosRatio > 0) && (ThreadLocalRandom.current().nextInt(this.chaosRatio) == 0);
+	}
+
+	private void handshake(final HttpServerRequest request) {
+		final JsonArray response = new JsonArray().add(new JsonObject()
+				.put("channel", "/meta/handshake")
+				.put("successful", true)
+				.put("clientId", CLIENT_ID));
+		request.response()
+				.putHeader("Content-Type", "application/json;charset=UTF-8")
+				.putHeader("Set-Cookie", "BAYEUX_BROWSER=cm-test; Path=/; Secure")
+				.end(response.encode());
+	}
+
+	private void connect(final HttpServerRequest request) {
+		request.body().onSuccess(body -> {
+			final JsonObject first = new JsonArray(body).getJsonObject(0);
+			if (first.containsKey("advice")) {
+				// The advice negotiation round
+				final JsonArray response = new JsonArray().add(new JsonObject()
+						.put("channel", "/meta/connect")
+						.put("successful", true)
+						.put("advice", new JsonObject().put("timeout", 110000).put("reconnect", "retry")));
+				request.response().putHeader("Content-Type", "application/json;charset=UTF-8")
+						.end(response.encode());
+			} else {
+				// The long poll - scripted answer or an empty one after a
+				// short wait; always answers, so shutdowns never hang
+				final JsonArray scripted = this.scriptedPollResponses.poll();
+				final JsonArray response = (scripted != null)
+						? scripted
+						: new JsonArray().add(new JsonObject().put("channel", "/meta/connect").put("successful", true));
+				final long delay = (scripted != null) ? 50 : 200;
+				this.vertx.setTimer(delay, timer -> request.response()
+						.putHeader("Content-Type", "application/json;charset=UTF-8")
+						.end(response.encode()));
+			}
+		});
+	}
+
+	private void subscribe(final HttpServerRequest request) {
+		request.body().onSuccess(body -> {
+			final String subscription = new JsonArray(body).getJsonObject(0).getString("subscription");
+			final JsonArray response = new JsonArray().add(new JsonObject()
+					.put("channel", "/meta/subscribe")
+					.put("subscription", subscription)
+					.put("successful", true));
+			request.response().putHeader("Content-Type", "application/json;charset=UTF-8")
+					.end(response.encode());
+		});
+	}
 }

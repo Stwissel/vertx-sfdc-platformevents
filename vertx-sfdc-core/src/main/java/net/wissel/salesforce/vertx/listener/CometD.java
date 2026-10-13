@@ -28,6 +28,7 @@ import java.util.Map;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.DeliveryOptions;
@@ -64,14 +65,14 @@ public class CometD extends AbstractSFDCVerticle {
     public SFDCVerticle startListening() {
 
         // First get a proper session
-        this.getAuthInfo().setHandler(handler -> {
+        this.getAuthInfo().onComplete(handler -> {
             if (handler.succeeded()) {
                 // We got a session
                 this.authInfo = handler.result();
                 // This is where we talk to the API
                 this.step2ActionHandshake();
             } else {
-                this.logger.fatal(handler.cause());
+                this.logger.error("Could not retrieve auth session", handler.cause());
             }
         });
         this.listening = true;
@@ -79,26 +80,31 @@ public class CometD extends AbstractSFDCVerticle {
     }
 
     @Override
-    public SFDCVerticle stopListening(final Future<Void> stopListenFuture) {
+    public Future<Void> stopListening() {
         this.shuttingDown = true;
-        if (this.shutdownCompleted) {
+        final Promise<Void> stopPromise = Promise.promise();
+        this.completeWhenDrained(stopPromise);
+        return stopPromise.future();
+    }
+
+    /**
+     * Completes the stop promise once the in-flight long poll has returned.
+     * A listener that never started has no poll to wait for, hence the
+     * listening check - otherwise the shutdown would hang forever
+     *
+     * @param stopPromise completed when draining is done
+     */
+    private void completeWhenDrained(final Promise<Void> stopPromise) {
+        if (this.shutdownCompleted || !this.listening) {
             this.authInfo = null;
             this.listening = false;
-            stopListenFuture.complete();
+            stopPromise.complete();
         } else {
             // We need to wait for the next cycle
             // There might be an incoming request
             // We don't want to miss
-            this.getVertx().setTimer(1000, en -> {
-                try {
-                    this.stopListening(stopListenFuture);
-                } catch (final Exception e) {
-                    this.logger.error(e);
-                }
-            });
-
+            this.getVertx().setTimer(1000, en -> this.completeWhenDrained(stopPromise));
         }
-        return this;
     }
 
     protected void captureCookies(final List<String> newCookies) {
@@ -145,7 +151,7 @@ public class CometD extends AbstractSFDCVerticle {
             this.getListenerConfig().getEventBusAddresses().forEach(destination -> {
                 try {
                     eb.publish(destination, payload, opts);
-                    this.logger.info("Sending to [" + destination + "]:" + payload.toString());
+                    this.logger.debug("Sending to [{}]: {}", destination, payload);
                 } catch (final Throwable t) {
                     this.logger.error(t.getMessage(), t);
                 }
@@ -196,24 +202,15 @@ public class CometD extends AbstractSFDCVerticle {
     }
 
     private Future<AuthInfo> getAuthInfo() {
-        Future<AuthInfo> result;
         if (this.authInfo == null) {
-            result = Future.future();
             final EventBus eb = this.getVertx().eventBus();
             final String address = Constants.BUS_AUTHREQUEST + this.getListenerConfig().getAuthName();
-            eb.send(address, null, replyHandler -> {
-                if (replyHandler.succeeded()) {
-                    this.authInfo = (AuthInfo) replyHandler.result().body();
-                    result.complete(this.authInfo);
-                } else {
-                    result.fail(replyHandler.cause());
-                }
+            return eb.<AuthInfo>request(address, null).map(reply -> {
+                this.authInfo = reply.body();
+                return this.authInfo;
             });
-
-        } else {
-            result = Future.succeededFuture(this.authInfo);
         }
-        return result;
+        return Future.succeededFuture(this.authInfo);
     }
 
     private JsonArray getConnectBody() {
@@ -273,7 +270,7 @@ public class CometD extends AbstractSFDCVerticle {
             }
             // TODO: more options
             wco.setUserAgent("SDFC VertX EventBus Client");
-            wco.setTryUseCompression(true);
+            wco.setDecompressionSupported(true);
             this.client = WebClient.create(this.getVertx(), wco);
         }
         return this.client;
@@ -281,8 +278,13 @@ public class CometD extends AbstractSFDCVerticle {
 
     private HttpRequest<Buffer> initWebPostRequest(final String destination) {
         final WebClient client = this.initWebClient();
-        final HttpRequest<Buffer> request = client.post(Constants.TLS_PORT, this.authInfo.serverName, destination)
-                .ssl(true).putHeader("Authorization", this.authInfo.sessionToken)
+        // port/ssl are configurable through parameters, so tests can run
+        // against a local mock server; production defaults stay 443/TLS
+        final int port = Integer.parseInt(
+                this.getListenerConfig().getParameter("port", String.valueOf(Constants.TLS_PORT)));
+        final boolean useSsl = Boolean.parseBoolean(this.getListenerConfig().getParameter("ssl", "true"));
+        final HttpRequest<Buffer> request = client.post(port, this.authInfo.serverName, destination)
+                .ssl(useSsl).putHeader("Authorization", this.authInfo.sessionToken)
                 .putHeader("Content-Type", "application/json;charset=UTF-8");
         final MultiMap headers = request.headers();
         headers.add("Cookie", this.cookies.values());
@@ -297,13 +299,9 @@ public class CometD extends AbstractSFDCVerticle {
         final HttpRequest<Buffer> request = this.initWebPostRequest(Constants.URL_HANDSHAKE);
         final JsonArray body = this.getHandshakeBody();
 
-        request.sendJson(body, postReturn -> {
-            if (postReturn.succeeded()) {
-                this.step2ResultHandshake(postReturn.result());
-            } else {
-                this.logger.error(postReturn.cause());
-            }
-        });
+        request.sendJson(body)
+                .onSuccess(this::step2ResultHandshake)
+                .onFailure(t -> this.logger.error("Handshake request failed", t));
     }
 
     private void step2ResultHandshake(final HttpResponse<Buffer> postReturn) {
@@ -340,13 +338,9 @@ public class CometD extends AbstractSFDCVerticle {
 
         final JsonArray body = this.getAdviceBody();
         final HttpRequest<Buffer> request = this.initWebPostRequest(Constants.URL_CONNECT);
-        request.sendJson(body, postReturn -> {
-            if (postReturn.succeeded()) {
-                this.step3ResultAdvice(postReturn.result());
-            } else {
-                this.logger.error(postReturn.cause());
-            }
-        });
+        request.sendJson(body)
+                .onSuccess(this::step3ResultAdvice)
+                .onFailure(t -> this.logger.error("Advice request failed", t));
     }
 
     private void step3ResultAdvice(final HttpResponse<Buffer> postReturn) {
@@ -376,13 +370,9 @@ public class CometD extends AbstractSFDCVerticle {
         final JsonArray body = this.getSubscriptionBody();
         final HttpRequest<Buffer> request = this.initWebPostRequest(Constants.URL_SUBSCRIBE);
 
-        request.sendJson(body, postReturn -> {
-            if (postReturn.succeeded()) {
-                this.step4ResultSubscribe(postReturn.result());
-            } else {
-                this.logger.error(postReturn.cause());
-            }
-        });
+        request.sendJson(body)
+                .onSuccess(this::step4ResultSubscribe)
+                .onFailure(t -> this.logger.error("Subscribe request failed", t));
     }
 
     private void step4ResultSubscribe(final HttpResponse<Buffer> postReturn) {
@@ -401,10 +391,12 @@ public class CometD extends AbstractSFDCVerticle {
             this.shutdownCompleted = true;
             return;
         }
-        this.logger.info("Fetch " + Utils.getDateString(new Date()));
+        this.logger.info("Fetch {}", Utils.getDateString(new Date()));
         final JsonArray body = this.getConnectBody();
         final HttpRequest<Buffer> request = this.initWebPostRequest(Constants.URL_CONNECT);
-        request.as(BodyCodec.jsonArray()).sendJson(body, this::subscriptionResult);
+        // Not a stack-growing recursion: each round trip is a fresh
+        // HTTP response event on the event loop
+        request.as(BodyCodec.jsonArray()).sendJson(body).onComplete(this::subscriptionResult);
 
     }
 
@@ -425,7 +417,7 @@ public class CometD extends AbstractSFDCVerticle {
                     }
                 } else {
                     // We won't continue if we can't fetch
-                    this.logger.fatal(status.encodePrettily());
+                    this.logger.error("Connect long poll unsuccessful: {}", status.encodePrettily());
                     shallWeContinue = false;
                 }
             }
@@ -439,7 +431,7 @@ public class CometD extends AbstractSFDCVerticle {
         } else {
             // Preliminary stopping here
             // needs to be handled
-            this.logger.fatal(ar.cause());
+            this.logger.error("Connect long poll failed", ar.cause());
             this.shutdownCompleted = true;
         }
     }

@@ -30,12 +30,12 @@ import io.vertx.core.Future;
 public class JwtOAuth extends AbstractAuth {
 
     /**
-     * @see net.wissel.salesforce.vertx.auth.AbstractAuth#login(io.vertx.core.Future)
+     * @see net.wissel.salesforce.vertx.auth.AbstractAuth#login()
      */
     @Override
-    protected void login(Future<AuthInfo> futureAuthinfo) {
-        // TODO Auto-generated method stub
-
+    protected Future<AuthInfo> login() {
+        // Not implemented yet - fail fast instead of hanging callers
+        return Future.failedFuture(new UnsupportedOperationException("JWT OAuth not implemented"));
     }
 
 }

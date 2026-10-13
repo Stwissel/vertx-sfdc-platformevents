@@ -19,8 +19,8 @@ Fastest results: Extend the [AbstractSFDCDedupVerticle](https://github.com/Stwis
 
 ## Sample code
 
-```
-package net.wissel.salesforce.vertx.consumer;
+```java
+package net.wissel.salesforce.vertx.dedup;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -28,28 +28,31 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 
 public class MemoryDedup extends AbstractSFDCDedupVerticle {
-    
+
     private final Queue<String> memoryQueue = new LinkedList<String>();
     private static final int MAX_MEMBERS = 100;
 
     /**
-     * @see net.wissel.salesforce.vertx.consumer.AbstractSFDCDedupVerticle#checkForDuplicate(io.vertx.core.Future, io.vertx.core.json.JsonObject)
+     * The returned future fails for a duplicate and succeeds for new content
+     * @see net.wissel.salesforce.vertx.dedup.AbstractSFDCDedupVerticle#checkForDuplicate(io.vertx.core.json.JsonObject)
      */
     @Override
-    protected void checkForDuplicate(final Future<Void> failIfDuplicate, final JsonObject messageBody) {
+    protected Future<Void> checkForDuplicate(final JsonObject messageBody) {
         final String candidate = messageBody.encode();
         if (this.memoryQueue.contains(candidate)) {
             // We have a duplicate and fail the future
-            failIfDuplicate.fail("Duplicate");
-        } else {
-            this.memoryQueue.offer(candidate);
-            // Limit the size of the queue
-            while (this.memoryQueue.size() > MAX_MEMBERS) {
-                this.memoryQueue.poll();
-            }
-            failIfDuplicate.complete();
+            return Future.failedFuture("Duplicate");
         }
-
+        this.memoryQueue.offer(candidate);
+        // Limit the size of the queue
+        while (this.memoryQueue.size() > MAX_MEMBERS) {
+            this.memoryQueue.poll();
+        }
+        return Future.succeededFuture();
     }
 }
 ```
+
+An asynchronous check (like the Redis implementation) returns its future
+chain, e.g. `return redisAPI.set(...).compose(response -> response == null
+? Future.failedFuture("Duplicate") : Future.succeededFuture());`

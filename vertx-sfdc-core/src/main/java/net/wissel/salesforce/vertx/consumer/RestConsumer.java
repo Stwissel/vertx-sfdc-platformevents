@@ -82,13 +82,14 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	@Override
 	public SFDCVerticle startListening() {
 
-		// First get a proper session
-		this.getAuthInfo().setHandler(handler -> {
+		// First get a proper session. Deliberately fire-and-forget:
+		// awaiting the reply would stall configs without an auth verticle
+		this.getAuthInfo().onComplete(handler -> {
 			if (handler.succeeded()) {
 				// We eventually got a session
 				this.authInfo = handler.result();
 			} else {
-				this.logger.fatal(handler.cause());
+				this.logger.error("Could not retrieve auth info", handler.cause());
 			}
 		});
 
@@ -120,25 +121,16 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	 * @return a future that resolves when successful got AuthInfo
 	 */
 	private Future<AuthInfo> getAuthInfo() {
-		Future<AuthInfo> result;
 		final String authName = this.getConsumerConfig().getAuthName();
 		if ((this.authInfo == null) && (authName != null)) {
-			result = Future.future();
 			final EventBus eb = this.getVertx().eventBus();
 			final String address = Constants.BUS_AUTHREQUEST + authName;
-			eb.send(address, null, replyHandler -> {
-				if (replyHandler.succeeded()) {
-					this.authInfo = (AuthInfo) replyHandler.result().body();
-					result.complete(this.authInfo);
-				} else {
-					result.fail(replyHandler.cause());
-				}
+			return eb.<AuthInfo>request(address, null).map(reply -> {
+				this.authInfo = reply.body();
+				return this.authInfo;
 			});
-
-		} else {
-			result = Future.succeededFuture(this.authInfo);
 		}
-		return result;
+		return Future.succeededFuture(this.authInfo);
 	}
 
 	/**
@@ -196,7 +188,7 @@ public class RestConsumer extends AbstractSFDCConsumer {
 			}
 			// TODO: more options
 			wco.setUserAgent("SFDC VertX REST Provider");
-			wco.setTryUseCompression(true);
+			wco.setDecompressionSupported(true);
 			this.client = WebClient.create(this.getVertx(), wco);
 		}
 		return this.client;
@@ -204,7 +196,9 @@ public class RestConsumer extends AbstractSFDCConsumer {
 
 	private HttpRequest<Buffer> initWebPostRequest(final String destination) {
 		final WebClient client = this.initWebClient();
-		final HttpRequest<Buffer> request = client.post(destination).ssl(true)
+		// The configured url is absolute - postAbs derives host, port
+		// and TLS use from the URL scheme
+		final HttpRequest<Buffer> request = client.postAbs(destination)
 				.putHeader(Constants.AUTH_HEADER, this.authInfo.sessionToken)
 				.putHeader(Constants.CONTENT_HEADER, this.getContentType());
 		return request;
@@ -217,17 +211,19 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	private void postToDestination(final PostRetry payload) {
 		this.initWebClient();
 		final HttpRequest<Buffer> request = this.initWebPostRequest(this.getConsumerConfig().getUrl());
-		request.sendBuffer(payload.body, result -> {
+		// Failures re-enqueue asynchronously, which is what lets the
+		// retry timer's drain loop terminate - keep it that way
+		request.sendBuffer(payload.body).onComplete(result -> {
 			// Retry if it didn't work
 			if (result.failed()) {
-				this.logger.error(result.cause());
+				this.logger.error("POST to destination failed", result.cause());
 				this.processError(payload);
 			} else {
 				final HttpResponse<Buffer> response = result.result();
 				// Check for return code
 				if ((response.statusCode() >= 200) && (response.statusCode() < 300)) {
 					// We are good
-					this.logger.info("Successful post:" + payload.body.toString());
+					this.logger.info("Successful post: {}", payload.body);
 				} else {
 					this.processError(payload);
 				}
@@ -241,7 +237,7 @@ public class RestConsumer extends AbstractSFDCConsumer {
 			// TODO: handle failure
 			this.retryBuffer.offer(payload);
 		} else {
-			this.logger.fatal(new Exception("POST failed after all retries:" + payload.body.toString()));
+			this.logger.error("POST failed after all retries: {}", payload.body);
 		}
 
 	}
@@ -268,7 +264,7 @@ public class RestConsumer extends AbstractSFDCConsumer {
 				pw.close();
 				result = Buffer.buffer(out.toByteArray());
 			} catch (final IOException e) {
-				this.logger.error(e);
+				this.logger.error("Mustache transformation failed", e);
 				// Get back the unchanged body
 				result = body.toBuffer();
 			}

@@ -21,6 +21,7 @@
  */
 package net.wissel.salesforce.vertx.auth;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import io.vertx.core.Future;
@@ -36,13 +37,13 @@ import net.wissel.salesforce.vertx.config.AuthConfig;
 public class Basic extends AbstractAuth{
 
 	@Override
-	protected void login(Future<AuthInfo> futureAuthinfo) {
+	protected Future<AuthInfo> login() {
 		AuthConfig ac = this.getAuthConfig();
 		String userCredentials = String.valueOf(ac.getSfdcUser())+":"+String.valueOf(ac.getSfdcPassword());
-		String token = "Basic " + Base64.getEncoder().encodeToString(userCredentials.getBytes());
+		String token = "Basic " + Base64.getEncoder().encodeToString(userCredentials.getBytes(StandardCharsets.UTF_8));
 		AuthInfo ai = new AuthInfo(ac.getServerURL(), token);
 		this.setCachedAuthInfo(ai);
-		futureAuthinfo.complete(ai);
+		return Future.succeededFuture(ai);
 	}
 
 }
