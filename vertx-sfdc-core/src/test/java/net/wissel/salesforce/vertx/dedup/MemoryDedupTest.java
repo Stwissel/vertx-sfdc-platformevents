@@ -55,6 +55,10 @@ public class MemoryDedupTest {
 		assertTrue(dedup.checkForDuplicate(message).failed());
 	}
 
+	// Each iteration needs a distinct message, so the allocation is deliberate.
+	// Reusing one mutated JsonObject would couple this test to MemoryDedup
+	// encoding the body immediately instead of retaining the reference.
+	@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
 	@Test
 	public void capacityIsLimitedTo100Entries() {
 		final MemoryDedup dedup = new MemoryDedup();

@@ -75,6 +75,14 @@ import net.wissel.salesforce.vertx.config.ListenerConfig;
  */
 public class ApplicationStarter extends VerticleBase {
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private final List<String> loadedVerticles = new ArrayList<String>();
+	private AppConfig appConfig = null;
+	private Router router = null;
+	private final Date startDate = new Date();
+	private ConfigRetriever retriever = null;
+	private int listeningPort = -1;
+
 	/**
 	 * Start Helper to test in IDE or Command line
 	 *
@@ -85,14 +93,6 @@ public class ApplicationStarter extends VerticleBase {
 		// Start in debug mode
 		Runner.runVerticle(ApplicationStarter.class.getName(), true);
 	}
-
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-	private final List<String> loadedVerticles = new ArrayList<String>();
-	private AppConfig appConfig = null;
-	private Router router = null;
-	private final Date startDate = new Date();
-	private ConfigRetriever retriever = null;
-	private int listeningPort = -1;
 
 	/**
 	 * @see io.vertx.core.VerticleBase#start()

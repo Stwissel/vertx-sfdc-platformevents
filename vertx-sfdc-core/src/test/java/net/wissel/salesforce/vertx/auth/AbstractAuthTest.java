@@ -47,6 +47,8 @@ import net.wissel.salesforce.vertx.config.AuthConfig;
 @ExtendWith(VertxExtension.class)
 public class AbstractAuthTest {
 
+	private static final String ADDRESS = Constants.BUS_AUTHREQUEST + "counting";
+
 	/**
 	 * Test double that counts login attempts and can be told to fail
 	 */
@@ -65,8 +67,6 @@ public class AbstractAuthTest {
 			return Future.succeededFuture(ai);
 		}
 	}
-
-	private static final String ADDRESS = Constants.BUS_AUTHREQUEST + "counting";
 
 	private Future<String> deploy(final Vertx vertx, final CountingAuth auth) {
 		TestUtilities.registerAuthCodec(vertx);

@@ -41,7 +41,7 @@ public final class TestUtilities {
 	public static void registerAuthCodec(final Vertx vertx) {
 		try {
 			vertx.eventBus().registerDefaultCodec(AuthInfo.class, new AuthInfoCodec());
-		} catch (final IllegalStateException e) {
+		} catch (final IllegalStateException ignored) {
 			// Already registered on this Vertx instance - fine
 		}
 	}
