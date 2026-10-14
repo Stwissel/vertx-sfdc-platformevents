@@ -21,11 +21,30 @@
  */
 package net.wissel.salesforce.vertx.auth;
 
+import java.nio.charset.StandardCharsets;
+
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageCodec;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * Event bus codec for {@link AuthInfo}.
+ *
+ * The event bus only moves its own types by default, so an AuthInfo needs
+ * this codec registered before it can be sent as a reply. Across the wire
+ * it travels as JSON; within one JVM the instance is passed straight
+ * through, which is safe because AuthInfo is immutable
+ *
+ * @author stw
+ */
 public class AuthInfoCodec implements MessageCodec<AuthInfo, AuthInfo>{
+	/**
+	 * Creates the codec, which carries no state of its own
+	 */
+	public AuthInfoCodec() {
+		// Nothing to set up
+	}
+
 
 	@Override
 	public void encodeToWire(Buffer buffer, AuthInfo s) {
@@ -38,7 +57,8 @@ public class AuthInfoCodec implements MessageCodec<AuthInfo, AuthInfo>{
 	    String jsonToStr = jsonToEncode.encode();
 
 	    // Length of JSON: is NOT characters count
-	    int length = jsonToStr.getBytes().length;
+	    // appendString writes UTF-8, so the length must count UTF-8 bytes
+	    int length = jsonToStr.getBytes(StandardCharsets.UTF_8).length;
 
 	    // Write data into given buffer
 	    buffer.appendInt(length);

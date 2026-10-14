@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>net.wissel.salesforce</groupId>
-		<version>0.3.4</version>
+		<version>0.5.0</version>
 		<artifactId>net.wissel.salesforce.vertx</artifactId>
 	</parent>
 	<artifactId>vertx-sfdc-core</artifactId>
@@ -31,61 +32,57 @@
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-web-client</artifactId>
-			<version>${vertx.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-web</artifactId>
-			<version>${vertx.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-core</artifactId>
-			<version>${vertx.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-config</artifactId>
-			<version>${vertx.version}</version>
 		</dependency>
-
 
 		<!-- 3rd party libraries (outside vert.x) -->
 		<dependency>
-			<groupId>joda-time</groupId>
-			<artifactId>joda-time</artifactId>
-			<version>${joda.version}</version>
+			<groupId>com.github.spullara.mustache.java</groupId>
+			<artifactId>compiler</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>com.github.spullara.mustache.java</groupId>
-			<artifactId>compiler</artifactId>
-			<version>${mustache.version}</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+
+		<!-- Optional in vertx-core, needed for JsonObject.mapFrom/mapTo
+			and the Jackson annotations on the config classes -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
 		</dependency>
 
 		<!-- Test dependencies -->
 		<dependency>
 			<groupId>io.vertx</groupId>
-			<artifactId>vertx-unit</artifactId>
-			<version>${vertx.version}</version>
+			<artifactId>vertx-junit5</artifactId>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Create random text, so it is more fun -->
 		<dependency>
-			<groupId>com.thedeanda</groupId>
-			<artifactId>lorem</artifactId>
-			<version>${lorem.version}</version>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
 			<scope>test</scope>
 		</dependency>
 

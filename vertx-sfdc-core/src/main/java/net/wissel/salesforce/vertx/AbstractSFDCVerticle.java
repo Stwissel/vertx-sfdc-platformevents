@@ -21,12 +21,14 @@
  */
 package net.wissel.salesforce.vertx;
 
-import io.vertx.core.AbstractVerticle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.vertx.core.Future;
+import io.vertx.core.VerticleBase;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 
 /**
  * Verticle Blueprint with default behaviors we use in this application
@@ -34,23 +36,54 @@ import io.vertx.core.logging.LoggerFactory;
  * - ability to listen to a "start listening" command on the event bus
  * - abstract functions for starting and stopping listening on the Bus or
  *   the external API
- *   
+ *
  * @author swissel
  *
  */
-public abstract class AbstractSFDCVerticle extends AbstractVerticle implements SFDCVerticle {
-
-	protected boolean shuttingDown = false;
-	protected boolean shutdownCompleted = false;
-	protected boolean startupCompleted = false;
-	protected boolean listening = false;
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+public abstract class AbstractSFDCVerticle extends VerticleBase implements SFDCVerticle {
 
 	/**
-	 * @see io.vertx.core.AbstractVerticle#start(io.vertx.core.Future)
+	 * Set once a stop has been requested, so running work can wind down
+	 */
+	protected boolean shuttingDown = false;
+	/**
+	 * Set once no work is left, which is what lets a stop future complete
+	 */
+	protected boolean shutdownCompleted = false;
+	/**
+	 * Set once deployment finished and the verticle is ready
+	 */
+	protected boolean startupCompleted = false;
+	/**
+	 * Whether this verticle currently has its consumer or poll registered
+	 */
+	protected boolean listening = false;
+	/**
+	 * Logger named after the concrete subclass
+	 */
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	/**
+	 * Creates the shared verticle base for a subclass
+	 */
+	protected AbstractSFDCVerticle() {
+		// Nothing to set up
+	}
+
+	/**
+	 * VerticleBase has no getVertx() accessor, subclasses rely on one
+	 *
+	 * @return the Vertx instance this verticle is deployed in
+	 */
+	protected Vertx getVertx() {
+		return this.vertx;
+	}
+
+	/**
+	 * @see io.vertx.core.VerticleBase#start()
 	 */
 	@Override
-	public void start(final Future<Void> startFuture) throws Exception {
+	public Future<?> start() throws Exception {
 
 		// Listen to the eventbus for start/stop commands
 		final EventBus eb = this.getVertx().eventBus();
@@ -72,20 +105,18 @@ public abstract class AbstractSFDCVerticle extends AbstractVerticle implements S
 		eb.consumer(stopAddress, message -> {
 			final String payload = String.valueOf(message.body());
 			if (payload.equals(Constants.MESSAGE_STOP)) {
-				final Future<Void> stopListenFuture = Future.future();
-				stopListenFuture.setHandler(result -> {
+				this.stopListening().onComplete(result -> {
 					if (result.succeeded()) {
 						this.listening = false;
 						message.reply(Constants.MESSAGE_STOP);
 					} else {
-						this.logger.error(result.cause());
+						this.logger.error("Stop listening failed", result.cause());
 						message.fail(500, result.cause().getMessage());
 					}
 				});
-				this.stopListening(stopListenFuture);
 			}
 		});
-		
+
 		// Listen to incoming configuration changes
 		eb.consumer(Constants.BUS_CONFIGUPDATE, message -> {
 		    final JsonObject newConfig = (JsonObject) message.body();
@@ -93,22 +124,21 @@ public abstract class AbstractSFDCVerticle extends AbstractVerticle implements S
 		});
 
 		// And we are done
-		startFuture.complete();
+		return Future.succeededFuture();
 	}
 
 	/**
-	 * @see io.vertx.core.AbstractVerticle#stop(io.vertx.core.Future)
+	 * @see io.vertx.core.VerticleBase#stop()
 	 */
 	@Override
-	public void stop(final Future<Void> stopFuture) throws Exception {
+	public Future<?> stop() throws Exception {
 		this.shuttingDown = true;
-		final Future<Void> stopListenFuture = Future.future();
-		stopListenFuture.setHandler(handler -> {
+		// A failing stopListening must not fail undeploy, hence transform
+		return this.stopListening().transform(result -> {
 			this.shutdownCompleted = true;
-			this.logger.info("Stopped verticle:" + this.getClass().getName());
-			stopFuture.complete();
+			this.logger.info("Stopped verticle: {}", this.getClass().getName());
+			return Future.succeededFuture();
 		});
-		this.stopListening(stopListenFuture);
 	}
 
 	/**
@@ -149,8 +179,8 @@ public abstract class AbstractSFDCVerticle extends AbstractVerticle implements S
 	public abstract SFDCVerticle startListening();
 
 	/**
-	 * @see net.wissel.salesforce.vertx.SFDCVerticle#stopListening(io.vertx.core.Future)
+	 * @see net.wissel.salesforce.vertx.SFDCVerticle#stopListening()
 	 */
-	public abstract SFDCVerticle stopListening(final Future<Void> stopListenFuture);
+	public abstract Future<Void> stopListening();
 
 }

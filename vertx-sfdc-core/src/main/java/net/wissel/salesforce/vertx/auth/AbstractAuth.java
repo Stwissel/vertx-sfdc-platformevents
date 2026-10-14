@@ -45,22 +45,51 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 	// We try only once
 	private boolean loginFailed = false;
 
+	// The login currently in flight, shared by every waiting request
+	private Future<AuthInfo> pendingLogin = null;
+
 	/**
-	 * @see net.wissel.salesforce.vertx.AbstractSFDCVerticle#start(io.vertx.core.Future)
+	 * Creates the shared auth base for a subclass
 	 */
-	@Override
-	public void start(final Future<Void> startFuture) throws Exception {
-		// Authentication needs to listen first
-		this.startListening();
-		super.start(startFuture);
+	protected AbstractAuth() {
+		// Nothing to set up
 	}
 
+	/**
+	 * @see net.wissel.salesforce.vertx.AbstractSFDCVerticle#start()
+	 */
+	@Override
+	public Future<?> start() throws Exception {
+		// Authentication needs to listen first
+		this.startListening();
+		return super.start();
+	}
+
+	/**
+	 * Gets the session currently cached, if a login has already succeeded
+	 *
+	 * @return the cached session, or null when none is held
+	 */
 	protected AuthInfo getCachedAuthInfo() {
 		return this.cachedAuthInfo;
 	}
 
-	protected abstract void login(Future<AuthInfo> futureAuthinfo);
+	/**
+	 * Performs the actual login against Salesforce.
+	 *
+	 * Implementations are expected to cache the result via
+	 * {@link #setCachedAuthInfo(AuthInfo)} so later requests are served from
+	 * the cache instead of logging in again
+	 *
+	 * @return a future carrying the session, failing when the login is refused
+	 */
+	protected abstract Future<AuthInfo> login();
 
+	/**
+	 * Stores the session to serve later requests from
+	 *
+	 * @param cacheInfo the session to cache, or null to drop what is held
+	 */
 	protected void setCachedAuthInfo(final AuthInfo cacheInfo) {
 		this.cachedAuthInfo = cacheInfo;
 
@@ -73,7 +102,6 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 			return this;
 		}
 		final EventBus eb = this.getVertx().eventBus();
-		eb.registerDefaultCodec(AuthInfo.class, new AuthInfoCodec());
 		final String address = Constants.BUS_AUTHREQUEST + this.getAuthConfig().getAuthName();
 		this.consumer = eb.consumer(address, handler -> {
 			// Check for a reset header, if found reset the cached connection
@@ -83,6 +111,9 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 			if (headers.contains(Constants.AUTH_RESET)) {
 				this.setCachedAuthInfo(null);
 				this.loginFailed = false;
+				// A reset asks for a fresh login, so an in-flight one started
+				// before the reset must not be handed out any more
+				this.pendingLogin = null;
 			}
 			if (this.getCachedAuthInfo() != null) {
 				handler.reply(this.getCachedAuthInfo());
@@ -91,44 +122,51 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 					// No second try
 					handler.fail(500, "Previous login attempt failed, login disabled " + this.getClass().getName());
 				} else {
-					final Future<AuthInfo> futureAuthinfo = Future.future();
-					futureAuthinfo.setHandler(authHandler -> {
+					// One login serves every request that arrives while it is
+					// in flight. Starting one per caller means one SOAP session
+					// per caller with SoapApi. A verticle runs on a single
+					// event loop thread, so this needs no synchronization
+					Future<AuthInfo> inFlight = this.pendingLogin;
+					if (inFlight == null) {
+						inFlight = this.login();
+						// Publish the field before registering the reset
+						// handler: a login that is already complete runs that
+						// handler at once, and only the local reference is
+						// guaranteed to still point at the future afterwards
+						this.pendingLogin = inFlight;
+						inFlight.onComplete(result -> this.pendingLogin = null);
+					}
+					inFlight.onComplete(authHandler -> {
 						if (authHandler.succeeded()) {
 							handler.reply(authHandler.result());
 						} else {
 							this.loginFailed = true;
-							this.logger.error(authHandler.cause());
+							this.logger.error("Login failed", authHandler.cause());
 							handler.fail(500, authHandler.cause().getMessage());
 						}
 					});
-					this.login(futureAuthinfo);
 				}
 			}
 		});
-		this.logger.info("Start listening:" + this.getClass().getName());
+		this.logger.info("Start listening: {}", this.getClass().getName());
 		this.listening = true;
 		return this;
 	}
 	/**
-	 * @see net.wissel.salesforce.vertx.AbstractSFDCVerticle#stopListening(io.vertx.core.Future)
+	 * @see net.wissel.salesforce.vertx.AbstractSFDCVerticle#stopListening()
 	 */
 	@Override
-	public SFDCVerticle stopListening(final Future<Void> stopListenFuture) {
-		this.logger.info("Stop listening:" + this.getClass().getName());
-		if (this.consumer != null) {
-			this.consumer.unregister(handler -> {
-				this.consumer = null;
-				this.listening = false;
-				this.loginFailed = false;
-				stopListenFuture.complete();
-			});
-		} else {
+	public Future<Void> stopListening() {
+		this.logger.info("Stop listening: {}", this.getClass().getName());
+		final Future<Void> unregister = (this.consumer != null)
+				? this.consumer.unregister()
+				: Future.succeededFuture();
+		return unregister.andThen(handler -> {
 			this.consumer = null;
 			this.listening = false;
 			this.loginFailed = false;
-			stopListenFuture.complete();
-		}
-		return this;
+			this.pendingLogin = null;
+		});
 	}
 
 	/**

@@ -35,8 +35,8 @@ import io.vertx.core.Future;
  */
 public interface SFDCVerticle {
 
-	/** 
-	 * 
+	/**
+	 *
 	 * Verticle actually starting to listen to EventBus or incoming messages
 	 * @return self - fluent API
 	 */
@@ -44,9 +44,8 @@ public interface SFDCVerticle {
 
 	/**
 	 *  End of listening, typically before unload or interactive mode
-	 * @param stopListenFuture Indicator when stop listening concluded
-	 * @return self - fluent API
+	 * @return Future that completes when stop listening concluded
 	 */
-	public SFDCVerticle stopListening(final Future<Void> stopListenFuture);
+	public Future<Void> stopListening();
 
 }

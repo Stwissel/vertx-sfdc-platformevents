@@ -57,6 +57,15 @@ public class DedupConfig extends BaseConfig {
 	private int port = 0;
 
 	/**
+	 * Creates an empty dedup configuration, which the JSON mapping fills
+	 */
+	public DedupConfig() {
+		// Nothing to set up
+	}
+
+	/**
+	 * Gets the port of the deduplication store
+	 *
 	 * @return the port
 	 */
 	public int getPort() {
@@ -64,6 +73,8 @@ public class DedupConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the host name of the deduplication store
+	 *
 	 * @return the serverURL
 	 */
 	public final String getServerURL() {
@@ -71,6 +82,8 @@ public class DedupConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the password used against the deduplication store
+	 *
 	 * @return the sfdcPassword
 	 */
 	public final String getSfdcPassword() {
@@ -78,6 +91,8 @@ public class DedupConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the user name used against the deduplication store
+	 *
 	 * @return the sfdcUser
 	 */
 	public final String getSfdcUser() {
@@ -85,6 +100,8 @@ public class DedupConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the port of the deduplication store
+	 *
 	 * @param port
 	 *            the port to set
 	 * @return DedupConfig fluid
@@ -95,6 +112,8 @@ public class DedupConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the host name of the deduplication store
+	 *
 	 * @param serverURL
 	 *            the serverURL to set
 	 * @return DedupConfig fluid
@@ -105,6 +124,8 @@ public class DedupConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the password used against the deduplication store
+	 *
 	 * @param passWord
 	 *            the passWord to set
 	 * @return DedupConfig fluid
@@ -115,6 +136,8 @@ public class DedupConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the user name used against the deduplication store
+	 *
 	 * @param userName
 	 *            the userName to set
 	 * @return DedupConfig fluid

@@ -68,7 +68,6 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	private class PostRetry {
 		final public Buffer body;
 		public int retryCount = 0;
-
 		public PostRetry(final JsonObject content) {
 			this.body = RestConsumer.this.transformBody(content);
 		}
@@ -79,16 +78,24 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	private WebClient client = null;
 	private Mustache mustache = null;
 
+	/**
+	 * Creates the consumer; Vert.x instantiates it on deployment
+	 */
+	public RestConsumer() {
+		// Nothing to set up
+	}
+
 	@Override
 	public SFDCVerticle startListening() {
 
-		// First get a proper session
-		this.getAuthInfo().setHandler(handler -> {
+		// First get a proper session. Deliberately fire-and-forget:
+		// awaiting the reply would stall configs without an auth verticle
+		this.getAuthInfo().onComplete(handler -> {
 			if (handler.succeeded()) {
 				// We eventually got a session
 				this.authInfo = handler.result();
 			} else {
-				this.logger.fatal(handler.cause());
+				this.logger.error("Could not retrieve auth info", handler.cause());
 			}
 		});
 
@@ -120,25 +127,16 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	 * @return a future that resolves when successful got AuthInfo
 	 */
 	private Future<AuthInfo> getAuthInfo() {
-		Future<AuthInfo> result;
 		final String authName = this.getConsumerConfig().getAuthName();
 		if ((this.authInfo == null) && (authName != null)) {
-			result = Future.future();
 			final EventBus eb = this.getVertx().eventBus();
 			final String address = Constants.BUS_AUTHREQUEST + authName;
-			eb.send(address, null, replyHandler -> {
-				if (replyHandler.succeeded()) {
-					this.authInfo = (AuthInfo) replyHandler.result().body();
-					result.complete(this.authInfo);
-				} else {
-					result.fail(replyHandler.cause());
-				}
+			return eb.<AuthInfo>request(address, null).map(reply -> {
+				this.authInfo = reply.body();
+				return this.authInfo;
 			});
-
-		} else {
-			result = Future.succeededFuture(this.authInfo);
 		}
-		return result;
+		return Future.succeededFuture(this.authInfo);
 	}
 
 	/**
@@ -167,6 +165,8 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	}
 
 	/**
+	 * Compiles the configured Mustache template on first use and keeps it
+	 *
 	 * @return a Mustache template compiled
 	 */
 	private Mustache getMustache() {
@@ -196,17 +196,24 @@ public class RestConsumer extends AbstractSFDCConsumer {
 			}
 			// TODO: more options
 			wco.setUserAgent("SFDC VertX REST Provider");
-			wco.setTryUseCompression(true);
-			this.client = WebClient.create(this.vertx, wco);
+			wco.setDecompressionSupported(true);
+			this.client = WebClient.create(this.getVertx(), wco);
 		}
 		return this.client;
 	}
 
 	private HttpRequest<Buffer> initWebPostRequest(final String destination) {
 		final WebClient client = this.initWebClient();
-		final HttpRequest<Buffer> request = client.post(destination).ssl(true)
-				.putHeader(Constants.AUTH_HEADER, this.authInfo.sessionToken)
+		// The configured url is absolute - postAbs derives host, port
+		// and TLS use from the URL scheme
+		final HttpRequest<Buffer> request = client.postAbs(destination)
 				.putHeader(Constants.CONTENT_HEADER, this.getContentType());
+		// An unauthenticated destination has no AuthInfo, and for one that
+		// needs it the reply may not have arrived yet - either way the header
+		// is simply omitted rather than dereferencing a null AuthInfo
+		if (this.authInfo != null) {
+			request.putHeader(Constants.AUTH_HEADER, this.authInfo.sessionToken);
+		}
 		return request;
 	}
 
@@ -215,19 +222,29 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	}
 
 	private void postToDestination(final PostRetry payload) {
+		// startListening asks for auth without waiting for the reply, so a
+		// message can arrive first. Re-enqueue it rather than posting without
+		// the credentials the destination requires
+		if ((this.authInfo == null) && (this.getConsumerConfig().getAuthName() != null)) {
+			this.getAuthInfo().onFailure(t -> this.logger.error("Could not retrieve auth info", t));
+			this.processError(payload);
+			return;
+		}
 		this.initWebClient();
 		final HttpRequest<Buffer> request = this.initWebPostRequest(this.getConsumerConfig().getUrl());
-		request.sendBuffer(payload.body, result -> {
+		// Failures re-enqueue asynchronously, which is what lets the
+		// retry timer's drain loop terminate - keep it that way
+		request.sendBuffer(payload.body).onComplete(result -> {
 			// Retry if it didn't work
 			if (result.failed()) {
-				this.logger.error(result.cause());
+				this.logger.error("POST to destination failed", result.cause());
 				this.processError(payload);
 			} else {
 				final HttpResponse<Buffer> response = result.result();
 				// Check for return code
 				if ((response.statusCode() >= 200) && (response.statusCode() < 300)) {
 					// We are good
-					this.logger.info("Successful post:" + payload.body.toString());
+					this.logger.info("Successful post: {}", payload.body);
 				} else {
 					this.processError(payload);
 				}
@@ -241,7 +258,7 @@ public class RestConsumer extends AbstractSFDCConsumer {
 			// TODO: handle failure
 			this.retryBuffer.offer(payload);
 		} else {
-			this.logger.fatal(new Exception("POST failed after all retries:" + payload.body.toString()));
+			this.logger.error("POST failed after all retries: {}", payload.body);
 		}
 
 	}
@@ -268,7 +285,7 @@ public class RestConsumer extends AbstractSFDCConsumer {
 				pw.close();
 				result = Buffer.buffer(out.toByteArray());
 			} catch (final IOException e) {
-				this.logger.error(e);
+				this.logger.error("Mustache transformation failed", e);
 				// Get back the unchanged body
 				result = body.toBuffer();
 			}

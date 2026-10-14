@@ -24,18 +24,30 @@ package net.wissel.salesforce.vertx.auth;
 import io.vertx.core.Future;
 
 /**
+ * Authentication through the OAuth 2.0 JWT bearer flow.
+ *
+ * Not implemented yet: {@link #login()} fails immediately rather than
+ * leaving its callers waiting on a future that never completes
+ *
  * @author swissel
  *
  */
 public class JwtOAuth extends AbstractAuth {
 
     /**
-     * @see net.wissel.salesforce.vertx.auth.AbstractAuth#login(io.vertx.core.Future)
+     * Creates the provider; Vert.x instantiates it on deployment
+     */
+    public JwtOAuth() {
+    	// Nothing to set up
+    }
+
+    /**
+     * @see net.wissel.salesforce.vertx.auth.AbstractAuth#login()
      */
     @Override
-    protected void login(Future<AuthInfo> futureAuthinfo) {
-        // TODO Auto-generated method stub
-
+    protected Future<AuthInfo> login() {
+        // Not implemented yet - fail fast instead of hanging callers
+        return Future.failedFuture(new UnsupportedOperationException("JWT OAuth not implemented"));
     }
 
 }

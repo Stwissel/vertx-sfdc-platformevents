@@ -45,16 +45,26 @@ import net.wissel.salesforce.vertx.config.DedupConfig;
  */
 public abstract class AbstractSFDCDedupVerticle extends AbstractSFDCVerticle {
 
+	/**
+	 * The registered event bus consumer, null while not listening
+	 */
 	protected MessageConsumer<JsonObject> dedupConsumer = null;
 	private DedupConfig dedupConfig = null;
+	/**
+	 * Creates the shared dedup base for a subclass
+	 */
+	protected AbstractSFDCDedupVerticle() {
+		// Nothing to set up
+	}
+
 
 	@Override
 	public SFDCVerticle startListening() {
-		this.logger.info("Start listening:" + this.getClass().getName());
+		this.logger.info("Start listening: {}", this.getClass().getName());
 		// Listen on the event bus
-		final EventBus eb = this.vertx.eventBus();
+		final EventBus eb = this.getVertx().eventBus();
 		this.dedupConsumer = eb.consumer(Constants.BUS_DEDUP_PREFIX + this.getDedupConfig().getInstanceName());
-		this.logger.info(this.getClass().getName() + " listening on " + this.dedupConsumer.address());
+		this.logger.info("{} listening on {}", this.getClass().getName(), this.dedupConsumer.address());
 		this.dedupConsumer.handler(this::processIncoming);
 		// Done
 		this.listening = true;
@@ -62,30 +72,42 @@ public abstract class AbstractSFDCDedupVerticle extends AbstractSFDCVerticle {
 	}
 
 	@Override
-	public SFDCVerticle stopListening(final Future<Void> stopListenFuture) {
-		this.logger.info("Stop listening:" + this.getClass().getName());
+	public Future<Void> stopListening() {
+		this.logger.info("Stop listening: {}", this.getClass().getName());
 		this.listening = false;
-		if (this.dedupConsumer == null) {
-			stopListenFuture.complete();
-		} else {
-			this.dedupConsumer.unregister(res -> {
-				stopListenFuture.complete();
-			});
-		}
-		return this;
+		return (this.dedupConsumer == null)
+				? Future.succeededFuture()
+				: this.dedupConsumer.unregister();
+	}
+
+	/**
+	 * Sends the message on to each of its final destinations
+	 *
+	 * @param messageBody      the message to forward
+	 * @param finalDestination the addresses it is destined for
+	 * @param dOpts            delivery options carrying the original headers
+	 */
+	private void forwardToDestinations(final JsonObject messageBody, final List<String> finalDestination,
+			final DeliveryOptions dOpts) {
+		final EventBus eb = this.getVertx().eventBus();
+		finalDestination.forEach(d -> eb.send(d, messageBody, dOpts));
 	}
 
 	/**
 	 ** Actual routine that check for "duplication". Could be anything, depending on use case.
-	 * The future fails when a duplicate is found and succeeds when it is not.
+	 * The returned future fails when a duplicate is found and succeeds when it is not.
 	 * This allows for async execution
-	 * 
-	 * @param failIfDuplicate
-	 *            Future that needs to fail if it is a duplicate, succeed if not
+	 *
+	 * Implementations must fail with a {@link DuplicateMessageException} for a
+	 * confirmed duplicate. Any other failure is read as the dedup store being
+	 * unavailable, and the message is forwarded rather than dropped
+	 *
 	 * @param messageBody
 	 *            the incoming message body to be checked
+	 * @return Future failing with DuplicateMessageException if it is a
+	 *         duplicate, succeeding if not
 	 */
-	protected abstract void checkForDuplicate(final Future<Void> failIfDuplicate, final JsonObject messageBody);
+	protected abstract Future<Void> checkForDuplicate(final JsonObject messageBody);
 
 	/**
 	 * Retrieve the configuration provided on startup
@@ -112,21 +134,23 @@ public abstract class AbstractSFDCDedupVerticle extends AbstractSFDCVerticle {
 			// Forwarding the original headers
 			final DeliveryOptions dOpts = new DeliveryOptions();
 			dOpts.setHeaders(headers);
-			final Future<Void> duplicate = Future.future(f -> {
-				if (f.succeeded()) {
-					// Forwarding it to where it should go
-					final EventBus eb = this.getVertx().eventBus();
-					finalDestination.forEach(d -> {
-						eb.send(d, j, dOpts);
-					});
-				} else {
-					this.logger.info("Dropped duplicate Object:" + String.valueOf(j));
-				}
-			});
 			// The duplicate check happens here!
-			this.checkForDuplicate(duplicate, j);
+			this.checkForDuplicate(j)
+					.onSuccess(v -> this.forwardToDestinations(j, finalDestination, dOpts))
+					.onFailure(t -> {
+						if (t instanceof DuplicateMessageException) {
+							this.logger.info("Dropped duplicate Object: {}", j);
+						} else {
+							// The check itself failed, so whether this is a
+							// duplicate is unknown. Forwarding keeps the event:
+							// a possible duplicate downstream is recoverable,
+							// an event dropped on a store outage is not
+							this.logger.error("Duplicate check failed, forwarding anyway", t);
+							this.forwardToDestinations(j, finalDestination, dOpts);
+						}
+					});
 		} else {
-			this.logger.fatal(new Exception("Incoming message without final destination" + incomingData.toString()));
+			this.logger.error("Incoming message without final destination: {}", incomingData);
 		}
 
 	}

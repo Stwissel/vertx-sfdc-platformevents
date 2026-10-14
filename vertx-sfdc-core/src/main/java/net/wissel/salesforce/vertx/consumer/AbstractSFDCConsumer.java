@@ -31,21 +31,37 @@ import net.wissel.salesforce.vertx.SFDCVerticle;
 import net.wissel.salesforce.vertx.config.ConsumerConfig;
 
 /**
+ * Base class for consumers: verticles that listen on an event bus address
+ * and do something with the data arriving there.
+ *
+ * Subclasses only implement {@link #processIncoming(io.vertx.core.eventbus.Message)};
+ * registering and unregistering the bus consumer is handled here
+ *
  * @author swissel
  *
  */
 public abstract class AbstractSFDCConsumer extends AbstractSFDCVerticle {
 
+	/**
+	 * The registered event bus consumer, null while not listening
+	 */
 	protected MessageConsumer<JsonObject> consumer = null;
 	private ConsumerConfig consumerConfig = null;
+	/**
+	 * Creates the shared consumer base for a subclass
+	 */
+	protected AbstractSFDCConsumer() {
+		// Nothing to set up
+	}
+
 
 	@Override
 	public SFDCVerticle startListening() {
-		this.logger.info("Start listening:" + this.getClass().getName());
+		this.logger.info("Start listening: {}", this.getClass().getName());
 		// Listen on the event bus
-		final EventBus eb = this.vertx.eventBus();
+		final EventBus eb = this.getVertx().eventBus();
 		this.consumer = eb.consumer(this.getConsumerConfig().getEventBusAddress());
-		this.logger.info(this.getClass().getName() + " listening on " + this.consumer.address());
+		this.logger.info("{} listening on {}", this.getClass().getName(), this.consumer.address());
 		this.consumer.handler(this::processIncoming);
 		// Done
 		this.listening = true;
@@ -53,19 +69,19 @@ public abstract class AbstractSFDCConsumer extends AbstractSFDCVerticle {
 	}
 
 	@Override
-	public SFDCVerticle stopListening(final Future<Void> stopListenFuture) {
-		this.logger.info("Stop listening:" + this.getClass().getName());
+	public Future<Void> stopListening() {
+		this.logger.info("Stop listening: {}", this.getClass().getName());
 		this.listening = false;
-		if (this.consumer == null) {
-			stopListenFuture.complete();
-		} else {
-			this.consumer.unregister(res -> {
-				stopListenFuture.complete();
-			});
-		}
-		return this;
+		return (this.consumer == null)
+				? Future.succeededFuture()
+				: this.consumer.unregister();
 	}
 
+	/**
+	 * Gets this consumer's configuration, mapped from the deployment JSON
+	 *
+	 * @return the consumer configuration
+	 */
 	protected ConsumerConfig getConsumerConfig() {
 		if (this.consumerConfig == null) {
 			this.consumerConfig = this.config().mapTo(ConsumerConfig.class);

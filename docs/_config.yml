@@ -1,4 +1,4 @@
-theme: jekyll-theme-architect
+remote_theme: pmarsceill/just-the-docs
 title: Verticles for Salesforce
 description: Making Salesforce fun to listen to using Eclipse vert.x
 show_downloads: true

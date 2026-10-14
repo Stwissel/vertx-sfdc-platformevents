@@ -19,41 +19,52 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.salesforce.vertx.config;
+package net.wissel.salesforce.vertx.auth;
 
-import io.vertx.config.ConfigRetriever;
-import io.vertx.config.ConfigRetrieverOptions;
-import io.vertx.config.ConfigStoreOptions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+import net.wissel.salesforce.vertx.Constants;
+import net.wissel.salesforce.vertx.TestUtilities;
+import net.wissel.salesforce.vertx.config.AuthConfig;
 
 /**
- * @author swissel
- *
+ * Basic authentication answers an auth request on the bus with a
+ * ready-to-use Base64 header
  */
-public class TestConfig {
+@ExtendWith(VertxExtension.class)
+public class BasicAuthTest {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		Vertx vertx = Vertx.vertx();
-		ConfigStoreOptions env = new ConfigStoreOptions()
-				.setType("file")
-				.setFormat("json")
-				.setConfig(new JsonObject().put("path", "sampleconfig.json"));
-		ConfigRetrieverOptions options = new ConfigRetrieverOptions().addStore(env);
-		ConfigRetriever retriever = ConfigRetriever.create(vertx, options);
-		
-		retriever.getConfig(ar -> {
-			JsonObject rc = ar.result();
-			System.out.println(rc.encodePrettily());
-			AppConfig a = rc.mapTo(AppConfig.class);
-			System.out.println(a);
-			System.out.println(a.port);
-			vertx.close();
-		});
+	@Test
+	public void basicAuthDeliversBase64Header(final Vertx vertx, final VertxTestContext testContext) {
+		TestUtilities.registerAuthCodec(vertx);
 
+		final AuthConfig config = new AuthConfig();
+		config.setAuthName("basic");
+		config.setServerURL("the.server.example.com");
+		config.setSfdcUser("User");
+		config.setSfdcPassword("pwd");
+
+		final DeploymentOptions options = new DeploymentOptions().setConfig(JsonObject.mapFrom(config));
+		vertx.deployVerticle(new Basic(), options)
+				.compose(id -> vertx.eventBus().<AuthInfo>request(Constants.BUS_AUTHREQUEST + "basic", null))
+				.onComplete(testContext.succeeding(reply -> testContext.verify(() -> {
+					final AuthInfo authInfo = reply.body();
+					final String expected = "Basic "
+							+ Base64.getEncoder().encodeToString("User:pwd".getBytes(StandardCharsets.UTF_8));
+					assertEquals(expected, authInfo.sessionToken);
+					assertEquals("the.server.example.com", authInfo.serverName);
+					testContext.completeNow();
+				})));
 	}
-
 }

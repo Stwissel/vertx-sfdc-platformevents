@@ -19,16 +19,36 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.salesforce.vertx;
-
-import io.vertx.core.AbstractVerticle;
+package net.wissel.salesforce.vertx.dedup;
 
 /**
- * Echo server that simply answers with randomly 200, 400 or 500
- * and proper results - needed for testing the interface verticles
- * @author swissel
+ * Marks a message that the dedup store has seen before.
+ *
+ * A dedup check reports its outcome by failing the returned future, which on
+ * its own cannot tell "this is a duplicate" apart from "the dedup store was
+ * unreachable". The first is routine and the message is dropped; the second
+ * is an incident and the message must not be silently lost. Failing with this
+ * type makes a confirmed duplicate recognizable, so any other cause can be
+ * treated as a storage failure.
+ *
+ * It is used as a future's failure cause and never actually thrown, so it
+ * carries no stack trace - duplicates are a steady-state occurrence and
+ * capturing a trace for each one would be wasted work.
+ *
+ * @author stw
  *
  */
-public class RestServiceEndpoint extends AbstractVerticle {
+public class DuplicateMessageException extends RuntimeException {
 
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * Records which key was already present in the dedup store
+	 *
+	 * @param key
+	 *            the dedup key that was already known
+	 */
+	public DuplicateMessageException(final String key) {
+		super("Message already processed: " + key, null, false, false);
+	}
 }

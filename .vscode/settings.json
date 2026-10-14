@@ -1,0 +1,14 @@
+{
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "cSpell.words": [
+    "autorelease",
+    "eventbus",
+    "jacoco",
+    "javadocs",
+    "ossrh",
+    "sfdc",
+    "sonatype",
+    "Verticle",
+    "Verticles"
+  ]
+}
