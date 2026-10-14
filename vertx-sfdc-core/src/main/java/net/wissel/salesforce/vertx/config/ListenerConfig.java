@@ -64,6 +64,14 @@ public class ListenerConfig extends BaseConfig {
 	private Set<String> eventBusAddresses = new HashSet<String>();
 
 	/**
+	 * Creates an empty listener configuration, which the JSON mapping fills
+	 */
+	public ListenerConfig() {
+		// Nothing to set up
+	}
+
+	/**
+	 * Adds one more event bus address that incoming events get published to
 	 *
 	 * @param address
 	 *            new Eventbus address to use
@@ -73,6 +81,8 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the authentication provider this listener takes its session from
+	 *
 	 * @return the authName
 	 */
 	public final String getAuthName() {
@@ -80,6 +90,8 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets every event bus address incoming events get published to
+	 *
 	 * @return the eventBusAddresses
 	 */
 	public final Set<String> getEventBusAddresses() {
@@ -87,6 +99,8 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the deduplication service address events are routed through
+	 *
 	 * @return the eventBusDedupAddress
 	 */
 	public final String getEventBusDedupAddress() {
@@ -94,6 +108,8 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the Salesforce channel or topic being subscribed to
+	 *
 	 * @return the listenSubject
 	 */
 	public final String getListenSubject() {
@@ -110,6 +126,8 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Reports whether incoming events pass through a deduplication service
+	 *
 	 * @return the useDedupService
 	 */
 	public final boolean isUseDedupService() {
@@ -117,6 +135,8 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the authentication provider this listener takes its session from
+	 *
 	 * @param authName
 	 *            the authName to set
 	 * @return fluid ListenerConfig
@@ -127,6 +147,8 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Replaces every event bus address incoming events get published to
+	 *
 	 * @param eventBusAddresses
 	 *            the eventBusAddresses to set
 	 * @return fluid ListenerConfig
@@ -137,6 +159,8 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the deduplication service address events are routed through
+	 *
 	 * @param eventBusDedupAddress
 	 *            the eventBusDedupAddress to set
 	 * @return fluid ListenerConfig
@@ -147,6 +171,8 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the Salesforce channel or topic to subscribe to
+	 *
 	 * @param listenSubject
 	 *            the listenSubject to set
 	 * @return fluid ListenerConfig
@@ -157,6 +183,8 @@ public class ListenerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets whether incoming events pass through a deduplication service
+	 *
 	 * @param useDedupService
 	 *            the useDedupService to set
 	 * @return fluid ListenerConfig

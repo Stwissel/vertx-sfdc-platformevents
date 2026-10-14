@@ -39,6 +39,13 @@ public class MemoryDedup extends AbstractSFDCDedupVerticle {
 	private static final int MAX_MEMBERS = 100;
 
 	/**
+	 * Creates the dedup verticle; Vert.x instantiates it on deployment
+	 */
+	public MemoryDedup() {
+		// Nothing to set up
+	}
+
+	/**
 	 * Actual routine that check for "duplication". Could be anything, depending on use case.
 	 * The future fails when a duplicate is found and succeeds when it is not.
 	 * This allows for async execution

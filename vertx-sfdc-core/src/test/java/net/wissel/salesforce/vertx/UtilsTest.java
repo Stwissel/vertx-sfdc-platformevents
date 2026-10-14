@@ -38,6 +38,11 @@ import org.junit.jupiter.api.Test;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * The static helpers in {@link net.wissel.salesforce.vertx.Utils}: date
+ * formatting, the JSON to plain collection conversions a template engine
+ * needs, and both merge modes including null arguments
+ */
 public class UtilsTest {
 
 	@Test

@@ -53,7 +53,23 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import net.wissel.salesforce.vertx.Constants;
 
+/**
+ * Authentication through the Salesforce SOAP login endpoint, using a user
+ * name and password.
+ *
+ * The request body is rendered from a template on the classpath, and the
+ * response yields the instance host name and session token
+ *
+ * @author stw
+ */
 public class SoapApi extends AbstractAuth {
+	/**
+	 * Creates the provider; Vert.x instantiates it on deployment
+	 */
+	public SoapApi() {
+		// Nothing to set up
+	}
+
 
 	@Override
 	protected Future<AuthInfo> login() {

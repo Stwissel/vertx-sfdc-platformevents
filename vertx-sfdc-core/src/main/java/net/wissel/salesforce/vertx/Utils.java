@@ -34,10 +34,22 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
+ * Static helpers shared across the verticles: date formatting in the
+ * format the Salesforce APIs expect, conversion of Vert.x JSON structures
+ * into the plain collections a template engine can walk, and recursive
+ * merging of JSON objects
+ *
  * @author swissel
  *
  */
 public class Utils {
+
+	/**
+	 * Static helpers only - this class is never instantiated
+	 */
+	private Utils() {
+		// Nothing to set up
+	}
 
 	/**
 	 * Standard way to deal with date
@@ -89,6 +101,12 @@ public class Utils {
 		return source;
 	}
 
+	/**
+	 * Converts a Vert.x JSON array into plain Java collections
+	 *
+	 * @param workArray the array to convert
+	 * @return a list of plain Java objects, nested members converted too
+	 */
 	@SuppressWarnings("unchecked")
 	public static List<Object> mappifyJsonArray(final JsonArray workArray) {
 		final List<Object> result = new ArrayList<>();
@@ -106,6 +124,13 @@ public class Utils {
 		return result;
 	}
 
+	/**
+	 * Converts a Vert.x JSON object into plain Java collections, which is what
+	 * a template engine such as Mustache can walk
+	 *
+	 * @param sourceJson the object to convert
+	 * @return a map of plain Java objects, nested members converted too
+	 */
 	public static Map<String, Object> mappifyJsonObject(final JsonObject sourceJson) {
 		final Map<String, Object> result = new LinkedHashMap<>();
 		final Map<String, Object> sourceMap = sourceJson.getMap();
@@ -131,8 +156,10 @@ public class Utils {
 	 * Merge two Json objects mainly used for config object updates
 	 * Optional removes keys no longer contained in the incoming JSON
 	 * 
-	 * @param baseJSON
-	 * @param newJSON
+	 * @param baseJSON  the object updated in place
+	 * @param newJSON   the incoming object supplying the new values
+	 * @param mergeHow  whether keys missing from newJSON are preserved or
+	 *                  removed from baseJSON
 	 */
     public static void mergeObjects(final JsonObject baseJSON, final JsonObject newJSON, JsonMergeOptions mergeHow) {
         

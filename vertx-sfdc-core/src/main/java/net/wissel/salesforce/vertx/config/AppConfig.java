@@ -40,17 +40,54 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppConfig {
 
+	/**
+	 * Authentication providers to deploy
+	 */
 	public final Collection<AuthConfig> authConfigurations = new ArrayList<AuthConfig>();
+	/**
+	 * Listeners to deploy, which subscribe to incoming Salesforce events
+	 */
 	public final Collection<ListenerConfig> listenerConfigurations = new ArrayList<ListenerConfig>();
+	/**
+	 * Consumers that act on the data arriving on the event bus
+	 */
 	public final Collection<ConsumerConfig> consumerConfigurations = new ArrayList<ConsumerConfig>();
+	/**
+	 * Deduplication services that filter repeated messages
+	 */
 	public final Collection<DedupConfig> dedupConfigurations = new ArrayList<DedupConfig>();
+	/**
+	 * Any further verticles to deploy, keyed by class name,
+	 * with their raw parameters as the value
+	 */
 	public final Map<String, Map<String, Object>> verticlesToLoad = new HashMap<String, Map<String, Object>>();
+	/**
+	 * Free-form parameters shared by the whole application
+	 */
 	public final Map<String, String> parameters = new HashMap<String, String>();
+	/**
+	 * Proxy host applied to every verticle that does not set its own
+	 */
 	public String proxy = null; // Default for entire Verticles if set
+	/**
+	 * Proxy port applied to every verticle that does not set its own
+	 */
 	public int proxyPort = 0;
+	/**
+	 * Port the built-in web server listens on
+	 */
 	public int port = 8044; // Our WebServer Port
 
 	/**
+	 * Creates an empty application configuration, which the JSON
+	 * mapping then fills
+	 */
+	public AppConfig() {
+		// Nothing to set up
+	}
+
+	/**
+	 * Registers an authentication provider
 	 * 
 	 * @param authConf Auth config to add
 	 * @return fluid AppConfig
@@ -61,8 +98,9 @@ public class AppConfig {
 	}
 	
 	/**
+	 * Registers a consumer
 	 * 
-	 * @param consConf Consumer config to ass
+	 * @param consConf Consumer config to add
 	 * @return fluid AppConfig
 	 */
 	public final AppConfig addConsumerConfig(final ConsumerConfig consConf) {
@@ -71,8 +109,9 @@ public class AppConfig {
 	}
 	
 	/**
+	 * Registers a deduplication service
 	 * 
-	 * @param ddConf DedupConfig config to ass
+	 * @param ddConf Dedup config to add
 	 * @return fluid AppConfig
 	 */
 	public final AppConfig addDedupConfig(final DedupConfig ddConf) {
@@ -81,6 +120,7 @@ public class AppConfig {
 	}
 
 	/**
+	 * Registers a listener
 	 * 
 	 * @param listConf Listener config to add
 	 * @return fluid AppConfig
@@ -91,6 +131,7 @@ public class AppConfig {
 	}
 
 	/**
+	 * Adds or replaces an application-wide parameter
 	 * 
 	 * @param key Parameter key
 	 * @param value Parameter value
@@ -102,6 +143,7 @@ public class AppConfig {
 	}
 
 	/**
+	 * Registers a verticle that none of the other categories covers
 	 * 
 	 * @param vName Verticle Name
 	 * @param params Parameter Object

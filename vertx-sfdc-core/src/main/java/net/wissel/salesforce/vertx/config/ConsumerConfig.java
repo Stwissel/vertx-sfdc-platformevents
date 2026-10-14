@@ -48,6 +48,15 @@ public class ConsumerConfig extends BaseConfig {
 	private String url;
 
 	/**
+	 * Creates an empty consumer configuration, which the JSON mapping fills
+	 */
+	public ConsumerConfig() {
+		// Nothing to set up
+	}
+
+	/**
+	 * Gets the authentication provider this consumer takes its credentials from
+	 *
 	 * @return the authName
 	 */
 	public final String getAuthName() {
@@ -55,6 +64,8 @@ public class ConsumerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the event bus address this consumer listens on
+	 *
 	 * @return the eventBusAddress
 	 */
 	public final String getEventBusAddress() {
@@ -62,6 +73,7 @@ public class ConsumerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the URL this consumer posts to, or mounts itself on
 	 *
 	 * @return The URL the consumer serves, e.g. REST, WebSocket etc
 	 */
@@ -70,6 +82,8 @@ public class ConsumerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the authentication provider this consumer takes its credentials from
+	 *
 	 * @param authName
 	 *            the authName to set
 	 * @return fluid ConsumerConfig
@@ -80,6 +94,8 @@ public class ConsumerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the event bus address this consumer listens on
+	 *
 	 * @param eventBusAddress
 	 *            the eventBusAddress to set
 	 * @return fluid ConsumerConfig
@@ -90,6 +106,7 @@ public class ConsumerConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the URL this consumer posts to, or mounts itself on
 	 * 
 	 * @param newURL the URL for the consumer
 	 * @return fluid ConsumerConfig

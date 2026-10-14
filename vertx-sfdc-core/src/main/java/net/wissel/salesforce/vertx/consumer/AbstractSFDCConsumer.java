@@ -31,13 +31,29 @@ import net.wissel.salesforce.vertx.SFDCVerticle;
 import net.wissel.salesforce.vertx.config.ConsumerConfig;
 
 /**
+ * Base class for consumers: verticles that listen on an event bus address
+ * and do something with the data arriving there.
+ *
+ * Subclasses only implement {@link #processIncoming(io.vertx.core.eventbus.Message)};
+ * registering and unregistering the bus consumer is handled here
+ *
  * @author swissel
  *
  */
 public abstract class AbstractSFDCConsumer extends AbstractSFDCVerticle {
 
+	/**
+	 * The registered event bus consumer, null while not listening
+	 */
 	protected MessageConsumer<JsonObject> consumer = null;
 	private ConsumerConfig consumerConfig = null;
+	/**
+	 * Creates the shared consumer base for a subclass
+	 */
+	protected AbstractSFDCConsumer() {
+		// Nothing to set up
+	}
+
 
 	@Override
 	public SFDCVerticle startListening() {
@@ -61,6 +77,11 @@ public abstract class AbstractSFDCConsumer extends AbstractSFDCVerticle {
 				: this.consumer.unregister();
 	}
 
+	/**
+	 * Gets this consumer's configuration, mapped from the deployment JSON
+	 *
+	 * @return the consumer configuration
+	 */
 	protected ConsumerConfig getConsumerConfig() {
 		if (this.consumerConfig == null) {
 			this.consumerConfig = this.config().mapTo(ConsumerConfig.class);

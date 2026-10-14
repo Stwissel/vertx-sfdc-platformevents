@@ -38,6 +38,10 @@ import net.wissel.salesforce.vertx.Constants;
 import net.wissel.salesforce.vertx.TestUtilities;
 import net.wissel.salesforce.vertx.config.AuthConfig;
 
+/**
+ * Basic authentication answers an auth request on the bus with a
+ * ready-to-use Base64 header
+ */
 @ExtendWith(VertxExtension.class)
 public class BasicAuthTest {
 

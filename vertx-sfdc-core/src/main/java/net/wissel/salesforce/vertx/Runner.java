@@ -30,10 +30,30 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 
+/**
+ * Launches a single verticle from an IDE or the command line, which saves
+ * setting up a full deployment just to try one verticle out
+ *
+ * @author stw
+ */
 public class Runner {
 
 	static Logger logger = LoggerFactory.getLogger(Runner.class);
 
+	/**
+	 * Static entry point only - this class is never instantiated
+	 */
+	private Runner() {
+		// Nothing to set up
+	}
+
+	/**
+	 * Deploys one verticle in its own Vert.x instance
+	 *
+	 * @param verticleID the class name of the verticle to deploy
+	 * @param debugMode  true to raise the blocked-thread thresholds, so that
+	 *                   breakpoints do not trip the blocked thread checker
+	 */
 	public static void runVerticle(final String verticleID, final boolean debugMode) {
 
 		// That's just for IDE testing...

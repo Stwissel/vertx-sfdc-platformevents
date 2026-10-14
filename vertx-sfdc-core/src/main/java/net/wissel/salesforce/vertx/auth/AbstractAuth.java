@@ -49,6 +49,13 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 	private Future<AuthInfo> pendingLogin = null;
 
 	/**
+	 * Creates the shared auth base for a subclass
+	 */
+	protected AbstractAuth() {
+		// Nothing to set up
+	}
+
+	/**
 	 * @see net.wissel.salesforce.vertx.AbstractSFDCVerticle#start()
 	 */
 	@Override
@@ -58,12 +65,31 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 		return super.start();
 	}
 
+	/**
+	 * Gets the session currently cached, if a login has already succeeded
+	 *
+	 * @return the cached session, or null when none is held
+	 */
 	protected AuthInfo getCachedAuthInfo() {
 		return this.cachedAuthInfo;
 	}
 
+	/**
+	 * Performs the actual login against Salesforce.
+	 *
+	 * Implementations are expected to cache the result via
+	 * {@link #setCachedAuthInfo(AuthInfo)} so later requests are served from
+	 * the cache instead of logging in again
+	 *
+	 * @return a future carrying the session, failing when the login is refused
+	 */
 	protected abstract Future<AuthInfo> login();
 
+	/**
+	 * Stores the session to serve later requests from
+	 *
+	 * @param cacheInfo the session to cache, or null to drop what is held
+	 */
 	protected void setCachedAuthInfo(final AuthInfo cacheInfo) {
 		this.cachedAuthInfo = cacheInfo;
 
