@@ -35,6 +35,13 @@ import io.vertx.redis.client.Response;
 import net.wissel.salesforce.vertx.config.DedupConfig;
 
 /**
+ * Deduplication backed by a Redis server, so several instances can share
+ * one view of what has already been seen.
+ *
+ * Each message is keyed by the MD5 of its body and stored with SET NX, so
+ * the store itself decides whether the key is new, and with an expiry so
+ * keys fall out after a day
+ *
  * @author swissel
  *
  */
@@ -43,6 +50,13 @@ public class RedisDedup extends AbstractSFDCDedupVerticle {
 	// Keys live in Redis for one full day 60*60*24h
 	private static final String LIFESPAN_SECONDS = "86400";
 	private static final int DEFAULT_REDIS_PORT = 6379;
+
+	/**
+	 * Creates the dedup verticle; Vert.x instantiates it on deployment
+	 */
+	public RedisDedup() {
+		// Nothing to set up
+	}
 
 	/**
 	 * The Redis client holding data

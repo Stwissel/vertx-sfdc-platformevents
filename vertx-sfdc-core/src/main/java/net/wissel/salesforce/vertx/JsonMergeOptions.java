@@ -28,7 +28,13 @@ package net.wissel.salesforce.vertx;
  */
 public enum JsonMergeOptions {
     
+    /**
+     * Keys absent from the incoming JSON are kept as they were
+     */
     PRESERVE_MISSING,
+    /**
+     * Keys absent from the incoming JSON are removed from the base
+     */
     REMOVE_MISSING
 
 }

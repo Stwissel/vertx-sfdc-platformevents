@@ -35,6 +35,13 @@ import net.wissel.salesforce.vertx.config.AuthConfig;
  *
  */
 public class Basic extends AbstractAuth{
+	/**
+	 * Creates the provider; Vert.x instantiates it on deployment
+	 */
+	public Basic() {
+		// Nothing to set up
+	}
+
 
 	@Override
 	protected Future<AuthInfo> login() {

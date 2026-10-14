@@ -84,6 +84,13 @@ public class ApplicationStarter extends VerticleBase {
 	private int listeningPort = -1;
 
 	/**
+	 * Creates the starter; Vert.x instantiates it on deployment
+	 */
+	public ApplicationStarter() {
+		// Nothing to set up
+	}
+
+	/**
 	 * Start Helper to test in IDE or Command line
 	 *
 	 * @param args
@@ -183,6 +190,7 @@ public class ApplicationStarter extends VerticleBase {
 	}
 
 	/**
+	 * Builds the deployment options for one configured verticle
 	 *
 	 * @param bc
 	 *            Base configuration as retrieved from JSON config file and

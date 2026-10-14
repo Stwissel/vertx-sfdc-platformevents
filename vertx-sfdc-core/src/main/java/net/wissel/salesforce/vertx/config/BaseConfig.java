@@ -87,11 +87,26 @@ public class BaseConfig {
 	 */
 	private Map<String, String> parameters = new HashMap<String, String>();
 
+	/**
+	 * Creates an empty configuration, which the JSON mapping then fills
+	 */
+	public BaseConfig() {
+		// Nothing to set up
+	}
+
+	/**
+	 * Adds or replaces one of the free-form parameters
+	 *
+	 * @param key   the parameter name
+	 * @param value the value to store under that name
+	 */
 	public void addParameter(final String key, final String value) {
 		this.parameters.put(key, value);
 	}
 
 	/**
+	 * Gets the name that uniquely identifies this instance
+	 *
 	 * @return the instanceName
 	 */
 	public String getInstanceName() {
@@ -124,6 +139,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Gets every free-form parameter supplied in the configuration
+	 *
 	 * @return the parameters
 	 */
 	public Map<String, String> getParameters() {
@@ -131,6 +148,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Gets the host name or IP of the proxy server, if one is configured
+	 *
 	 * @return the proxy
 	 */
 	public final String getProxy() {
@@ -138,6 +157,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Gets the port of the proxy server, if one is configured
+	 *
 	 * @return the proxyPort
 	 */
 	public final int getProxyPort() {
@@ -145,6 +166,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Gets how many instances of the verticle get deployed
+	 *
 	 * @return the verticleInstanceCount
 	 */
 	public int getVerticleInstanceCount() {
@@ -152,6 +175,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Gets the class name of the verticle implementing this entry
+	 *
 	 * @return the verticleName
 	 */
 	public String getVerticleName() {
@@ -170,6 +195,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Reports whether the loader starts the verticle right after deployment
+	 *
 	 * @return the autoStart
 	 */
 	public boolean isAutoStart() {
@@ -177,6 +204,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Reports whether the verticle is deployed as a worker
+	 *
 	 * @return the deployAsWorker
 	 */
 	public boolean isDeployAsWorker() {
@@ -184,6 +213,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Reports whether the verticle is allowed to listen and act
+	 *
 	 * @return the enabled
 	 */
 	public boolean isEnabled() {
@@ -191,6 +222,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Reports whether the verticle contributes a router extension
+	 *
 	 * @return the providesRouterExtension
 	 */
 	public boolean isProvidesRouterExtension() {
@@ -198,6 +231,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Sets whether the loader starts the verticle right after deployment
+	 *
 	 * @param autoStart
 	 *            the autoStart to set
 	 * @return BaseConfig fluid
@@ -208,6 +243,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Sets whether the verticle is deployed as a worker
+	 *
 	 * @param deployAsWorker
 	 *            the deployAsWorker to set
 	 * @return BaseConfig fluid
@@ -218,6 +255,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Sets whether the verticle is allowed to listen and act
+	 *
 	 * @param enabled
 	 *            the enabled to set
 	 * @return BaseConfig fluid
@@ -228,6 +267,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Sets the name that uniquely identifies this instance
+	 *
 	 * @param instanceName
 	 *            the instanceName to set
 	 * @return fluid - self
@@ -238,6 +279,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Replaces every free-form parameter
+	 *
 	 * @param parameters
 	 *            the parameters to set
 	 * @return BaseConfig fluid
@@ -248,6 +291,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Sets whether the verticle contributes a router extension
+	 *
 	 * @param providesRouterExtension
 	 *            the providesRouterExtension to set
 	 * @return BaseConfig fluid
@@ -258,6 +303,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Sets the host name or IP of the proxy server to use
+	 *
 	 * @param proxy
 	 *            the proxy to set
 	 * @return BaseConfig fluid
@@ -268,6 +315,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Inherits proxy host and port from the application configuration, leaving any value already set here untouched
+	 *
 	 * @param appConfig
 	 *            the appConfig with proxy information
 	 * @return BaseConfig fluid
@@ -285,6 +334,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Sets the port of the proxy server to use
+	 *
 	 * @param proxyPort
 	 *            the proxyPort to set
 	 * @return BaseConfig fluid
@@ -295,6 +346,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Sets how many instances of the verticle get deployed
+	 *
 	 * @param verticleInstanceCount
 	 *            the verticleInstanceCount to set
 	 * @return BaseConfig fluid
@@ -305,6 +358,8 @@ public class BaseConfig {
 	}
 
 	/**
+	 * Sets the class name of the verticle implementing this entry
+	 *
 	 * @param verticleName
 	 *            the verticleName to set
 	 * @return BaseConfig fluid

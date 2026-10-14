@@ -31,10 +31,23 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import net.wissel.salesforce.vertx.SFDCRouterExtension;
 
 /**
+ * Consumer that forwards incoming data to browsers over SockJS.
+ *
+ * It contributes its own route, so the configured URL has to be a wildcard
+ * mount such as {@code /datachange/*}, and republishes each message on the
+ * bus address named by the {@code websocketname} parameter
+ *
  * @author swissel
  *
  */
 public class WebSocketConsumer extends AbstractSFDCConsumer implements SFDCRouterExtension {
+	/**
+	 * Creates the consumer; Vert.x instantiates it on deployment
+	 */
+	public WebSocketConsumer() {
+		// Nothing to set up
+	}
+
 	
 	@Override
 	public SFDCRouterExtension addRoutes(final Router router) {

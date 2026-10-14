@@ -42,11 +42,33 @@ import io.vertx.core.json.JsonObject;
  */
 public abstract class AbstractSFDCVerticle extends VerticleBase implements SFDCVerticle {
 
+	/**
+	 * Set once a stop has been requested, so running work can wind down
+	 */
 	protected boolean shuttingDown = false;
+	/**
+	 * Set once no work is left, which is what lets a stop future complete
+	 */
 	protected boolean shutdownCompleted = false;
+	/**
+	 * Set once deployment finished and the verticle is ready
+	 */
 	protected boolean startupCompleted = false;
+	/**
+	 * Whether this verticle currently has its consumer or poll registered
+	 */
 	protected boolean listening = false;
+	/**
+	 * Logger named after the concrete subclass
+	 */
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	/**
+	 * Creates the shared verticle base for a subclass
+	 */
+	protected AbstractSFDCVerticle() {
+		// Nothing to set up
+	}
 
 	/**
 	 * VerticleBase has no getVertx() accessor, subclasses rely on one

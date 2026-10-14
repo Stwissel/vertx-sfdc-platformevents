@@ -71,6 +71,15 @@ public class AuthConfig extends BaseConfig {
 	private String consumerSecret = null;
 
 	/**
+	 * Creates an empty auth configuration, which the JSON mapping fills
+	 */
+	public AuthConfig() {
+		// Nothing to set up
+	}
+
+	/**
+	 * Gets the name this authentication provider is addressed by
+	 *
 	 * @return the authName
 	 */
 	public final String getAuthName() {
@@ -78,6 +87,8 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the OAuth consumer secret of the connected app
+	 *
 	 * @return the consumerSecret
 	 */
 	public final String getConsumerSecret() {
@@ -85,6 +96,8 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the OAuth consumer token of the connected app
+	 *
 	 * @return the consumerToken
 	 */
 	public final String getConsumerToken() {
@@ -92,6 +105,8 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the host name of the Salesforce instance to authenticate against
+	 *
 	 * @return the serverURL
 	 */
 	public final String getServerURL() {
@@ -99,6 +114,8 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the password, which may need the security token appended
+	 *
 	 * @return the sfdcPassword
 	 */
 	public final String getSfdcPassword() {
@@ -106,6 +123,8 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
+	 * Gets the Salesforce user name to log in with
+	 *
 	 * @return the sfdcUser
 	 */
 	public final String getSfdcUser() {
@@ -113,6 +132,8 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the name this authentication provider is addressed by
+	 *
 	 * @param authName
 	 *            the authName to set
 	 * @return AuthConfig fluid
@@ -123,6 +144,8 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the OAuth consumer secret of the connected app
+	 *
 	 * @param consumerSecret
 	 *            the consumerSecret to set
 	 * @return AuthConfig fluid
@@ -133,6 +156,8 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the OAuth consumer token of the connected app
+	 *
 	 * @param consumerToken
 	 *            the consumerToken to set
 	 * @return AuthConfig fluid
@@ -143,6 +168,8 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the host name of the Salesforce instance to authenticate against
+	 *
 	 * @param serverURL
 	 *            the serverURL to set
 	 * @return AuthConfig fluid
@@ -153,6 +180,8 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the password, which may need the security token appended
+	 *
 	 * @param passWord
 	 *            the passWord to set
 	 * @return AuthConfig fluid
@@ -163,6 +192,8 @@ public class AuthConfig extends BaseConfig {
 	}
 
 	/**
+	 * Sets the Salesforce user name to log in with
+	 *
 	 * @param userName
 	 *            the userName to set
 	 * @return AuthConfig fluid

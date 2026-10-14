@@ -22,13 +22,30 @@
 package net.wissel.salesforce.vertx.auth;
 
 /**
+ * The outcome of a successful login: which Salesforce instance to talk to
+ * and the session token to present on each request.
+ *
+ * Instances are immutable and travel the event bus via {@link AuthInfoCodec}
+ *
  * @author swissel
  *
  */
 public class AuthInfo {
+	/**
+	 * Host name of the Salesforce instance this session belongs to
+	 */
 	public final String serverName;
+	/**
+	 * Session token to send as the authorization header
+	 */
 	public final String sessionToken;
 	
+	/**
+	 * Captures the result of one successful login
+	 *
+	 * @param server host name of the Salesforce instance
+	 * @param token  session token obtained from the login
+	 */
 	public AuthInfo(final String server, final String token) {
 		this.serverName = server;
 		this.sessionToken = token;

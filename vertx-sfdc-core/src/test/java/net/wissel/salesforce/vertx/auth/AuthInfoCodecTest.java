@@ -28,6 +28,10 @@ import org.junit.jupiter.api.Test;
 
 import io.vertx.core.buffer.Buffer;
 
+/**
+ * Round trips through the event bus codec, including a buffer that does
+ * not start at position zero and a token carrying non-ASCII characters
+ */
 public class AuthInfoCodecTest {
 
 	private final AuthInfoCodec codec = new AuthInfoCodec();

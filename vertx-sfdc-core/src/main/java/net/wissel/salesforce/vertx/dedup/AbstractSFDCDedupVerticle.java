@@ -45,8 +45,18 @@ import net.wissel.salesforce.vertx.config.DedupConfig;
  */
 public abstract class AbstractSFDCDedupVerticle extends AbstractSFDCVerticle {
 
+	/**
+	 * The registered event bus consumer, null while not listening
+	 */
 	protected MessageConsumer<JsonObject> dedupConsumer = null;
 	private DedupConfig dedupConfig = null;
+	/**
+	 * Creates the shared dedup base for a subclass
+	 */
+	protected AbstractSFDCDedupVerticle() {
+		// Nothing to set up
+	}
+
 
 	@Override
 	public SFDCVerticle startListening() {

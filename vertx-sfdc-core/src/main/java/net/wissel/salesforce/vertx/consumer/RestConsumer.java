@@ -68,7 +68,6 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	private class PostRetry {
 		final public Buffer body;
 		public int retryCount = 0;
-
 		public PostRetry(final JsonObject content) {
 			this.body = RestConsumer.this.transformBody(content);
 		}
@@ -78,6 +77,13 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	private AuthInfo authInfo = null;
 	private WebClient client = null;
 	private Mustache mustache = null;
+
+	/**
+	 * Creates the consumer; Vert.x instantiates it on deployment
+	 */
+	public RestConsumer() {
+		// Nothing to set up
+	}
 
 	@Override
 	public SFDCVerticle startListening() {
@@ -159,6 +165,8 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	}
 
 	/**
+	 * Compiles the configured Mustache template on first use and keeps it
+	 *
 	 * @return a Mustache template compiled
 	 */
 	private Mustache getMustache() {

@@ -49,6 +49,14 @@ import net.wissel.salesforce.vertx.auth.AuthInfo;
 import net.wissel.salesforce.vertx.config.ListenerConfig;
 
 /**
+ * Listener that subscribes to a Salesforce CometD (Bayeux) channel and
+ * republishes every event it receives onto the event bus.
+ *
+ * Startup walks the protocol in order - handshake, advice, subscribe - and
+ * then keeps a long poll open, re-issuing it after each response. Any
+ * terminal failure along the way marks the listener stopped so that a
+ * later {@link #stopListening()} can complete
+ *
  * @author stw
  *
  */
@@ -56,10 +64,20 @@ public class CometD extends AbstractSFDCVerticle {
 
     private ListenerConfig            listenerConfig = null;
     private AuthInfo                  authInfo       = null;
+    /**
+     * Web client used for every call in the CometD exchange
+     */
     protected WebClient               client         = null;
     private String                    clientId       = null;
     private int                       connectCounter = 3;
     private final Map<String, String> cookies        = new HashMap<String, String>();
+    /**
+     * Creates the listener; Vert.x instantiates it on deployment
+     */
+    public CometD() {
+    	// Nothing to set up
+    }
+
 
     @Override
     public SFDCVerticle startListening() {
@@ -125,6 +143,12 @@ public class CometD extends AbstractSFDCVerticle {
         this.shutdownCompleted = true;
     }
 
+    /**
+     * Remembers the cookies a response returned, so the next request in the
+     * exchange presents them again
+     *
+     * @param newCookies the Set-Cookie values from the last response
+     */
     protected void captureCookies(final List<String> newCookies) {
         if (newCookies != null) {
             for (final String newCookie : newCookies) {
@@ -133,6 +157,11 @@ public class CometD extends AbstractSFDCVerticle {
         }
     }
 
+    /**
+     * Gets this listener's configuration, mapped from the deployment JSON
+     *
+     * @return the listener configuration
+     */
     protected ListenerConfig getListenerConfig() {
         if (this.listenerConfig == null) {
             this.listenerConfig = this.config().mapTo(ListenerConfig.class);
@@ -140,6 +169,12 @@ public class CometD extends AbstractSFDCVerticle {
         return this.listenerConfig;
     }
 
+    /**
+     * Supplies the next CometD message id, wrapping around rather than
+     * overflowing on a long running listener
+     *
+     * @return the next id in sequence
+     */
     protected synchronized int getNextCounter() {
         // Resetting the counter for super long running
         // processes to prevent overflow
@@ -149,7 +184,14 @@ public class CometD extends AbstractSFDCVerticle {
         return this.connectCounter++;
     }
 
-    /* Signal the results to the eventbus */
+    /**
+     * Publishes one received event onto the event bus, either straight to the
+     * configured destinations or through the dedup service when one is
+     * configured. The final destination header is always set, so whatever
+     * handles the message next knows where it was headed
+     *
+     * @param dataChange one event as CometD delivered it
+     */
     protected void processOneResult(final JsonObject dataChange) {
 
         final JsonObject data = dataChange.getJsonObject("data");

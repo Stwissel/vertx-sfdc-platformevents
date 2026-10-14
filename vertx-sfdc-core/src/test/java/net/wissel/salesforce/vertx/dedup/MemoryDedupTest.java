@@ -42,6 +42,11 @@ import net.wissel.salesforce.vertx.TestUtilities;
 import net.wissel.salesforce.vertx.config.DedupConfig;
 
 @ExtendWith(VertxExtension.class)
+/**
+ * In-memory deduplication: the direct check, the bounded capacity that
+ * evicts the oldest entry, and the bus flow that forwards new messages
+ * while dropping the ones already seen
+ */
 public class MemoryDedupTest {
 
 	// --- Direct unit tests of the dedup logic (no deployment needed) ---

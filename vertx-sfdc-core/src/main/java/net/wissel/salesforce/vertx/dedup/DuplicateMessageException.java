@@ -43,6 +43,8 @@ public class DuplicateMessageException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * Records which key was already present in the dedup store
+	 *
 	 * @param key
 	 *            the dedup key that was already known
 	 */

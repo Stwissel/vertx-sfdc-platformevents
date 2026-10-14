@@ -25,13 +25,27 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 /**
+ * Consumer that writes whatever arrives to the log, which makes it handy
+ * for checking that a pipeline delivers before a real consumer exists
+ *
  * @author swissel
  *
  */
 public class ConsoleConsumer extends AbstractSFDCConsumer {
 
+	/**
+	 * Creates the consumer; Vert.x instantiates it on deployment
+	 */
+	public ConsoleConsumer() {
+		// Nothing to set up
+	}
+
+	/**
+	 * Writes the incoming data to the log, formatted for reading
+	 *
+	 * @see net.wissel.salesforce.vertx.consumer.AbstractSFDCConsumer#processIncoming(io.vertx.core.eventbus.Message)
+	 */
 	@Override
-	// Just write out to the console
 	protected void processIncoming(final Message<JsonObject> incomingData) {
 		final JsonObject body = incomingData.body();
 		this.logger.info(body.encodePrettily());
