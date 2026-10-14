@@ -195,6 +195,12 @@ public class SoapApi extends AbstractAuth {
 	}
 
 	private Future<AuthInfo> resultOfAuthentication(final HttpResponse<Buffer> postReturn) {
+		// A SOAP fault arrives with a non-2xx status and no sessionId. Reporting
+		// the status here keeps it out of the generic "check the log" failure
+		final int statusCode = postReturn.statusCode();
+		if ((statusCode < 200) || (statusCode >= 300)) {
+			return Future.failedFuture("SOAP login failed with HTTP " + statusCode);
+		}
 		// Get session info
 		final Buffer body = postReturn.body();
 		final AuthInfo a = this.extractAuthInfoFromBody(body);

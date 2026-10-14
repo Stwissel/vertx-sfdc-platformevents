@@ -22,6 +22,7 @@
 package net.wissel.salesforce.vertx.consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -129,6 +130,38 @@ public class RestConsumerTest {
 					vertx.eventBus().publish(BUS_ADDRESS, new JsonObject().put("payload", "shiny"));
 					this.awaitReceived(vertx, echo, 1, () -> testContext.verify(() -> {
 						assertTrue(echo.received().get(0).body().contains("EVENT:shiny"));
+						testContext.completeNow();
+					}));
+				}));
+	}
+
+	@Test
+	public void consumerWithoutAuthPostsWithoutAuthHeader(final Vertx vertx, final VertxTestContext testContext) {
+		final String busAddress = "test:restconsumer-noauth";
+		final ConsumerConfig config = new ConsumerConfig();
+		// Deliberately no authName - getAuthInfo then never fills authInfo
+		config.setEventBusAddress(busAddress);
+		config.setInstanceName("restConsumerNoAuth");
+		config.addParameter("interval", "200");
+		config.addParameter("maxRetryCount", "2");
+
+		final EchoServer echo = new EchoServer();
+		echo.start(vertx)
+				.compose(server -> {
+					config.setUrl("http://localhost:" + echo.actualPort() + "/submission");
+					return vertx.deployVerticle(new RestConsumer(),
+							new DeploymentOptions().setConfig(JsonObject.mapFrom(config)));
+				})
+				.compose(id -> {
+					TestUtilities.startAllListeners(vertx);
+					return vertx.timer(250).map(echo);
+				})
+				.onComplete(testContext.succeeding(started -> {
+					vertx.eventBus().publish(busAddress, new JsonObject().put("payload", "noauth"));
+					// Dereferencing the absent AuthInfo used to throw here,
+					// dropping the payload without scheduling a retry
+					this.awaitReceived(vertx, echo, 1, () -> testContext.verify(() -> {
+						assertNull(echo.received().get(0).headers().get(Constants.AUTH_HEADER));
 						testContext.completeNow();
 					}));
 				}));

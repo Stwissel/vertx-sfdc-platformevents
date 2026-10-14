@@ -85,6 +85,26 @@ public class CometDFlowTest {
 	}
 
 	@Test
+	public void stopListeningCompletesAfterStartupFailure(final Vertx vertx, final VertxTestContext testContext) {
+		TestUtilities.registerAuthCodec(vertx);
+		final ListenerConfig config = this.listenerConfig("cometdFail", "test:cometd-never");
+		// Nothing answers this auth address, so the startup chain dies at its
+		// very first step and no long poll is ever started
+		config.setAuthName("doesNotExist");
+
+		final CometD listener = new CometD();
+		vertx.deployVerticle(listener, new DeploymentOptions().setConfig(JsonObject.mapFrom(config)))
+				.compose(id -> {
+					TestUtilities.startAllListeners(vertx);
+					// Let the failing auth request settle
+					return vertx.timer(300);
+				})
+				// This future stayed pending forever before the fix
+				.compose(v -> listener.stopListening())
+				.onComplete(testContext.succeeding(stopped -> testContext.completeNow()));
+	}
+
+	@Test
 	public void eventTravelsToConfiguredAddress(final Vertx vertx, final VertxTestContext testContext) {
 		final JsonObject payload = new JsonObject().put("Message__c", "hello").put("ObjectType__c", "Case");
 

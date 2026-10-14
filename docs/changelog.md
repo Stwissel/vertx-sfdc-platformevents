@@ -8,7 +8,9 @@ Major modernization release with **breaking API changes**:
 - Upgraded to **Vert.x 5.2.1** (code was written against Vert.x 3.x)
 - Extension points are now Future-returning instead of completing a passed-in `Future`:
   - `AbstractAuth.login()` returns `Future<AuthInfo>`
-  - `AbstractSFDCDedupVerticle.checkForDuplicate(JsonObject)` returns `Future<Void>` (fail = duplicate)
+  - `AbstractSFDCDedupVerticle.checkForDuplicate(JsonObject)` returns `Future<Void>` and must fail
+    with a `DuplicateMessageException` for a confirmed duplicate - any other failure is read as the
+    dedup store being unavailable, and the message is forwarded rather than dropped
   - `SFDCVerticle.stopListening()` returns `Future<Void>`
   - Verticles extend `VerticleBase` (`Future<?> start()`) instead of `AbstractVerticle`
 - Logging switched from the removed `io.vertx.core.logging` API to SLF4J

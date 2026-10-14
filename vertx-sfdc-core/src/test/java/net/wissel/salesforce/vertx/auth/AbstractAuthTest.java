@@ -24,6 +24,8 @@ package net.wissel.salesforce.vertx.auth;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.ReplyException;
@@ -55,6 +58,9 @@ public class AbstractAuthTest {
 	public static class CountingAuth extends AbstractAuth {
 		final AtomicInteger loginCount = new AtomicInteger(0);
 		volatile boolean failLogins = false;
+		// When above zero the login resolves on a timer rather than at once,
+		// which is what leaves a window for concurrent requests to share it
+		volatile long loginDelayMs = 0;
 
 		@Override
 		protected Future<AuthInfo> login() {
@@ -63,6 +69,14 @@ public class AbstractAuthTest {
 				return Future.failedFuture("Login refused by test");
 			}
 			final AuthInfo ai = new AuthInfo("counting.example.com", "token-" + this.loginCount.get());
+			if (this.loginDelayMs > 0) {
+				final Promise<AuthInfo> delayed = Promise.promise();
+				this.getVertx().setTimer(this.loginDelayMs, timer -> {
+					this.setCachedAuthInfo(ai);
+					delayed.complete(ai);
+				});
+				return delayed.future();
+			}
 			this.setCachedAuthInfo(ai);
 			return Future.succeededFuture(ai);
 		}
@@ -133,6 +147,28 @@ public class AbstractAuthTest {
 				.onComplete(testContext.succeeding(reply -> testContext.verify(() -> {
 					assertEquals(2, auth.loginCount.get());
 					assertEquals("token-2", reply.body().sessionToken);
+					testContext.completeNow();
+				})));
+	}
+
+	@Test
+	public void concurrentRequestsShareOneLogin(final Vertx vertx, final VertxTestContext testContext) {
+		final CountingAuth auth = new CountingAuth();
+		// The cache is only filled once the login resolves, so all five
+		// requests below arrive while it is still pending
+		auth.loginDelayMs = 200;
+		this.deploy(vertx, auth)
+				.compose(id -> {
+					final List<Future<?>> waiting = new ArrayList<>();
+					for (int i = 0; i < 5; i++) {
+						waiting.add(vertx.eventBus().request(ADDRESS, null));
+					}
+					return Future.all(waiting);
+				})
+				.onComplete(testContext.succeeding(composite -> testContext.verify(() -> {
+					// All five served, but the login happened exactly once
+					assertEquals(5, composite.size());
+					assertEquals(1, auth.loginCount.get());
 					testContext.completeNow();
 				})));
 	}

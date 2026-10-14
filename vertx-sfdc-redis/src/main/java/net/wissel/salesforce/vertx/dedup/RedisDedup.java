@@ -55,7 +55,7 @@ public class RedisDedup extends AbstractSFDCDedupVerticle {
 		return this.storeKey(key).compose(response ->
 				// SET with NX answers null when the key already existed
 				(response == null)
-						? Future.failedFuture("Message already processed " + key)
+						? Future.failedFuture(new DuplicateMessageException(key))
 						: Future.succeededFuture());
 	}
 
@@ -91,15 +91,31 @@ public class RedisDedup extends AbstractSFDCDedupVerticle {
 
 	private RedisAPI getRedisAPI() {
 		if (this.redisAPI == null) {
-			final DedupConfig ddConfig = this.getDedupConfig();
-			final int port = (ddConfig.getPort() > 0) ? ddConfig.getPort() : RedisDedup.DEFAULT_REDIS_PORT;
-			final String password = ddConfig.getSfdcPassword();
-			final String auth = ((password == null) || password.isEmpty()) ? "" : ":" + password + "@";
-			final String connectionString = "redis://" + auth + ddConfig.getServerURL() + ":" + port;
-			final Redis client = Redis.createClient(this.getVertx(),
-					new RedisOptions().setConnectionString(connectionString));
+			final Redis client = Redis.createClient(this.getVertx(), this.buildRedisOptions());
 			this.redisAPI = RedisAPI.api(client);
 		}
 		return this.redisAPI;
+	}
+
+	/**
+	 * Builds the connection options for the configured Redis server.
+	 * The password travels as its own option rather than inside the
+	 * connection URI: a password containing a URI delimiter such as
+	 * "@" or "#" would otherwise change how the string is parsed and
+	 * break authentication for an otherwise valid password.
+	 * Separate method, so tests can inspect the result
+	 *
+	 * @return options addressing the configured server
+	 */
+	protected RedisOptions buildRedisOptions() {
+		final DedupConfig ddConfig = this.getDedupConfig();
+		final int port = (ddConfig.getPort() > 0) ? ddConfig.getPort() : RedisDedup.DEFAULT_REDIS_PORT;
+		final RedisOptions options = new RedisOptions()
+				.setConnectionString("redis://" + ddConfig.getServerURL() + ":" + port);
+		final String password = ddConfig.getSfdcPassword();
+		if ((password != null) && !password.isEmpty()) {
+			options.setPassword(password);
+		}
+		return options;
 	}
 }
