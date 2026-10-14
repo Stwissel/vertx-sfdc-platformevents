@@ -55,9 +55,20 @@ annotations, not between them:
    even though the comment was visibly present. Hoisted above the
    annotation.
 
+4. `BasicAuthTest` and `MemoryDedupTest` - the class doc went below
+   `@ExtendWith(VertxExtension.class)`, the same mistake as 3. Caught by
+   CodeRabbit on the PR, not by this pass.
+
 Both compile failures were caught by the build; the third only by the
 warning count not reaching zero, which is the argument for treating the
 count as the completion criterion rather than eyeballing the files.
+
+The fourth is the interesting one, because it slipped past two safety
+nets at once. The placement audit ran *before* the test-class docs were
+added, so it never saw them, and doclint cannot see them either: javadoc
+only processes `src/main`, so nothing in `src/test` ever affects the
+warning count. The audit has since been re-run over main and test
+together and is clean.
 
 Constructors were deliberately placed after the field declarations, not
 at the top of each class, to avoid re-triggering the

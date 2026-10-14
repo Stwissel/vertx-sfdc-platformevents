@@ -64,6 +64,38 @@ that kind of in-rule affordance over `@SuppressWarnings`, and reserve the
 annotation for cases where the finding is genuinely inapplicable (such as
 deliberate allocation inside a test loop).
 
+## JavaDoc
+
+### A doc comment goes before the annotations, never between them
+
+```java
+/** Correct - javadoc reads this. */
+@Override
+public void run() { }
+
+@Override
+/** Ignored - javadoc never sees it. */
+public void run() { }
+```
+
+The second form compiles, reads fine to a human, and is silently dropped.
+Worse, inserting a *member* between an annotation and its declaration
+rebinds the annotation, which produces errors a long way from the cause
+("annotation interface not applicable to this kind of declaration").
+
+**Why:** the JDK 25 doc-comment spec requires the comment to immediately
+precede the declaration, ahead of annotations and modifiers.
+
+**How to apply:** when adding docs or members near annotated
+declarations, insert above the whole annotation run. Afterwards grep for
+a `/**` whose previous non-blank line starts with `@`.
+
+### doclint only covers src/main
+
+`mvn javadoc:javadoc` never processes test sources, so a warning count of
+zero says nothing about `src/test`. Audit test sources separately, and
+run any placement check *after* the last edit rather than mid-pass.
+
 ## Build
 
 ### `gpg` is required by `mvn verify`
