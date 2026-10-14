@@ -18,7 +18,7 @@ public class CometDChangeObject extends CometD {
 		this.getListenerConfig().getEventBusAddresses().forEach(destination -> {
 			try {
 				eb.publish(destination+objectType, payload);
-				this.logger.info("Sending to [" + destination+objectType + "]:" + payload.toString());
+				this.logger.debug("Sending to [{}]: {}", destination + objectType, payload);
 			} catch (final Throwable t) {
 				this.logger.error(t.getMessage(), t);
 			}

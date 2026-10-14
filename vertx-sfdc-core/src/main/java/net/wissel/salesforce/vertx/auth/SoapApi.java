@@ -45,7 +45,6 @@ import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.ProxyOptions;
@@ -57,7 +56,11 @@ import net.wissel.salesforce.vertx.Constants;
 public class SoapApi extends AbstractAuth {
 
 	@Override
-	protected void login(final Future<AuthInfo> futureAuthinfo) {
+	protected Future<AuthInfo> login() {
+		if (this.shuttingDown || this.shutdownCompleted) {
+			this.shutdownCompleted = true;
+			return Future.failedFuture("Auth disrupted by stop command");
+		}
 		final WebClientOptions wco = new WebClientOptions();
 		final String proxyHost = this.getAuthConfig().getProxy();
 		final int proxyPort = this.getAuthConfig().getProxyPort();
@@ -67,20 +70,19 @@ public class SoapApi extends AbstractAuth {
 			po.setHost(proxyHost).setPort(proxyPort);
 		}
 		wco.setUserAgent("SDFC VertX Authenticator");
-		wco.setTryUseCompression(true);
+		wco.setDecompressionSupported(true);
 		final WebClient authClient = WebClient.create(this.getVertx(), wco);
 		final Buffer body = this.getAuthBody(this.getAuthConfig().getSfdcUser(),
 				this.getAuthConfig().getSfdcPassword());
-		if (!this.shuttingDown && !this.shutdownCompleted) {
-			authClient.post(Constants.TLS_PORT, this.getAuthConfig().getServerURL(), Constants.AUTH_SOAP_LOGIN)
-					.putHeader("Content-Type", "text/xml").ssl(true).putHeader("SOAPAction", "Login")
-					.putHeader("PrettyPrint", "Yes").sendBuffer(body, postReturn -> {
-						this.resultOfAuthentication(postReturn, futureAuthinfo);
-					});
-		} else {
-			this.shutdownCompleted = true;
-			futureAuthinfo.fail("Auth disruped by stop command");
-		}
+		// port/ssl are configurable through parameters, so tests can run
+		// against a local mock server; production defaults stay 443/TLS
+		final int port = Integer.parseInt(
+				this.getAuthConfig().getParameter("port", String.valueOf(Constants.TLS_PORT)));
+		final boolean useSsl = Boolean.parseBoolean(this.getAuthConfig().getParameter("ssl", "true"));
+		return authClient.post(port, this.getAuthConfig().getServerURL(), Constants.AUTH_SOAP_LOGIN)
+				.putHeader("Content-Type", "text/xml").ssl(useSsl).putHeader("SOAPAction", "Login")
+				.putHeader("PrettyPrint", "Yes").sendBuffer(body)
+				.compose(this::resultOfAuthentication);
 	}
 
 	private AuthInfo extractAuthInfoFromBody(final Buffer body) {
@@ -129,7 +131,7 @@ public class SoapApi extends AbstractAuth {
 			// Check for expired password
 			final String pwdNode = String.valueOf(xPath.evaluate(pwdExpiredQuery, xmlDocument, XPathConstants.STRING));
 			if (!"false".equalsIgnoreCase(pwdNode)) {
-				this.logger.fatal("Credential password expired");
+				this.logger.error("Credential password expired");
 			} else {
 				// Next step, find the actual server
 				final String serverNode = String
@@ -148,8 +150,9 @@ public class SoapApi extends AbstractAuth {
 			}
 
 		} catch (final Exception e) {
-			this.logger.fatal(e.getMessage(), e);
-			this.logger.fatal(body.toString());
+			// Deliberately not logging the response body: it echoes the
+			// SOAP login request on errors and may contain credentials
+			this.logger.error("Could not parse SOAP login response", e);
 		}
 
 		// When we have non-null instanceHostName and sessionId
@@ -184,28 +187,22 @@ public class SoapApi extends AbstractAuth {
 			mustache.execute(pw, values).flush();
 			pw.close();
 		} catch (final IOException e) {
-			this.logger.error(e);
+			this.logger.error("Could not render SOAP login template", e);
 			return Buffer.buffer();
 		}
 
 		return Buffer.buffer(out.toByteArray());
 	}
 
-	private void resultOfAuthentication(final AsyncResult<HttpResponse<Buffer>> postReturn,
-			final Future<AuthInfo> futureAuthinfo) {
-		if (postReturn.succeeded()) {
-			// Get session info
-			final Buffer body = postReturn.result().body();
-			final AuthInfo a = this.extractAuthInfoFromBody(body);
-			if (a != null) {
-				this.setCachedAuthInfo(a);
-				futureAuthinfo.complete(a);
-			} else {
-				futureAuthinfo.fail("Authentication phase failed, please check log");
-			}
-		} else {
-			futureAuthinfo.fail(postReturn.cause());
+	private Future<AuthInfo> resultOfAuthentication(final HttpResponse<Buffer> postReturn) {
+		// Get session info
+		final Buffer body = postReturn.body();
+		final AuthInfo a = this.extractAuthInfoFromBody(body);
+		if (a != null) {
+			this.setCachedAuthInfo(a);
+			return Future.succeededFuture(a);
 		}
+		return Future.failedFuture("Authentication phase failed, please check log");
 	}
 
 }

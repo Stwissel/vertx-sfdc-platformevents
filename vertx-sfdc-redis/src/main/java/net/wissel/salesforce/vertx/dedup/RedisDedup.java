@@ -23,13 +23,15 @@ package net.wissel.salesforce.vertx.dedup;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
-import javax.xml.bind.DatatypeConverter;
+import java.util.HexFormat;
+import java.util.List;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
-import io.vertx.redis.RedisClient;
-import io.vertx.redis.RedisOptions;
+import io.vertx.redis.client.Redis;
+import io.vertx.redis.client.RedisAPI;
+import io.vertx.redis.client.RedisOptions;
+import io.vertx.redis.client.Response;
 import net.wissel.salesforce.vertx.config.DedupConfig;
 
 /**
@@ -38,30 +40,39 @@ import net.wissel.salesforce.vertx.config.DedupConfig;
  */
 public class RedisDedup extends AbstractSFDCDedupVerticle {
 
-	// EX 86400 = Storing data in Redis for one full day 60*60*24h
-	// NX = Create only if not exist
-	private final static String DEFAULT_LIFESPAN = " NX EX 86400";
+	// Keys live in Redis for one full day 60*60*24h
+	private static final String LIFESPAN_SECONDS = "86400";
+	private static final int DEFAULT_REDIS_PORT = 6379;
 
 	/**
 	 * The Redis client holding data
 	 */
-	private RedisClient redisClient = null;
+	private RedisAPI redisAPI = null;
 
 	@Override
-	protected void checkForDuplicate(final Future<Void> failIfDuplicate, final JsonObject messageBody) {
+	protected Future<Void> checkForDuplicate(final JsonObject messageBody) {
 		final String key = this.getMd5(messageBody);
-		this.getRedisClient().set(key + RedisDedup.DEFAULT_LIFESPAN, key, result -> {
-			if (result.succeeded()) {
-				failIfDuplicate.complete();
-			} else {
-				failIfDuplicate.fail("Message already processes " + key);
-			}
-		});
+		return this.storeKey(key).compose(response ->
+				// SET with NX answers null when the key already existed
+				(response == null)
+						? Future.failedFuture("Message already processed " + key)
+						: Future.succeededFuture());
+	}
+
+	/**
+	 * Stores the key, only if new (NX), expiring after a day (EX).
+	 * Separate method, so tests can substitute the Redis server
+	 *
+	 * @param key the dedup key
+	 * @return the raw Redis response, null for an existing key
+	 */
+	protected Future<Response> storeKey(final String key) {
+		return this.getRedisAPI().set(List.of(key, key, "NX", "EX", RedisDedup.LIFESPAN_SECONDS));
 	}
 
 	/**
 	 * Get a reasonable key value for the object
-	 * 
+	 *
 	 * @param j
 	 *            the Json Object
 	 * @return a MD5 String
@@ -71,25 +82,24 @@ public class RedisDedup extends AbstractSFDCDedupVerticle {
 		try {
 			final MessageDigest md = MessageDigest.getInstance("MD5");
 			final byte[] bresult = md.digest(j.toBuffer().getBytes());
-			result = DatatypeConverter.printHexBinary(bresult);
+			result = HexFormat.of().withUpperCase().formatHex(bresult);
 		} catch (final NoSuchAlgorithmException e) {
-			this.logger.fatal(e);
+			this.logger.error("MD5 digest unavailable", e);
 		}
 		return result;
 	}
 
-	private RedisClient getRedisClient() {
-		if (this.redisClient == null) {
+	private RedisAPI getRedisAPI() {
+		if (this.redisAPI == null) {
 			final DedupConfig ddConfig = this.getDedupConfig();
-			final RedisOptions redisOptions = new RedisOptions();	
-			redisOptions.setAddress(ddConfig.getServerURL());
-			redisOptions.setAuth(ddConfig.getSfdcPassword());
-			if (ddConfig.getPort() > 0) {
-				redisOptions.setPort(ddConfig.getPort());
-			}
-			
-			this.redisClient = RedisClient.create(this.getVertx(), redisOptions);
+			final int port = (ddConfig.getPort() > 0) ? ddConfig.getPort() : RedisDedup.DEFAULT_REDIS_PORT;
+			final String password = ddConfig.getSfdcPassword();
+			final String auth = ((password == null) || password.isEmpty()) ? "" : ":" + password + "@";
+			final String connectionString = "redis://" + auth + ddConfig.getServerURL() + ":" + port;
+			final Redis client = Redis.createClient(this.getVertx(),
+					new RedisOptions().setConnectionString(connectionString));
+			this.redisAPI = RedisAPI.api(client);
 		}
-		return this.redisClient;
+		return this.redisAPI;
 	}
 }

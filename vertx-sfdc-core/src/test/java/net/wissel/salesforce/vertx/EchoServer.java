@@ -19,41 +19,60 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.salesforce.vertx.config;
+package net.wissel.salesforce.vertx;
 
-import io.vertx.config.ConfigRetriever;
-import io.vertx.config.ConfigRetrieverOptions;
-import io.vertx.config.ConfigStoreOptions;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.http.HttpServer;
 
 /**
- * @author swissel
- *
+ * Local HTTP endpoint for consumer tests. Records what it receives
+ * and can be scripted to fail the next n requests with a 500
  */
-public class TestConfig {
+public class EchoServer {
 
 	/**
-	 * @param args
+	 * One recorded request
 	 */
-	public static void main(String[] args) {
-		Vertx vertx = Vertx.vertx();
-		ConfigStoreOptions env = new ConfigStoreOptions()
-				.setType("file")
-				.setFormat("json")
-				.setConfig(new JsonObject().put("path", "sampleconfig.json"));
-		ConfigRetrieverOptions options = new ConfigRetrieverOptions().addStore(env);
-		ConfigRetriever retriever = ConfigRetriever.create(vertx, options);
-		
-		retriever.getConfig(ar -> {
-			JsonObject rc = ar.result();
-			System.out.println(rc.encodePrettily());
-			AppConfig a = rc.mapTo(AppConfig.class);
-			System.out.println(a);
-			System.out.println(a.port);
-			vertx.close();
-		});
-
+	public record ReceivedRequest(String method, String path, MultiMap headers, String body) {
 	}
 
+	private final List<ReceivedRequest> received = new CopyOnWriteArrayList<>();
+	private final AtomicInteger failuresLeft = new AtomicInteger(0);
+	private HttpServer server;
+
+	/**
+	 * Starts the echo server on a random free port
+	 *
+	 * @param vertx the test Vertx instance
+	 * @return Future with the started server (port via actualPort())
+	 */
+	public Future<HttpServer> start(final Vertx vertx) {
+		return vertx.createHttpServer().requestHandler(request -> request.body().onSuccess(body -> {
+			this.received.add(new ReceivedRequest(request.method().name(), request.path(),
+					request.headers(), body.toString()));
+			if (this.failuresLeft.getAndUpdate(n -> Math.max(0, n - 1)) > 0) {
+				request.response().setStatusCode(500).end("Scripted failure");
+			} else {
+				request.response().setStatusCode(200).end("OK");
+			}
+		})).listen(0).andThen(result -> this.server = result.result());
+	}
+
+	public int actualPort() {
+		return this.server.actualPort();
+	}
+
+	public void failNextRequests(final int count) {
+		this.failuresLeft.set(count);
+	}
+
+	public List<ReceivedRequest> received() {
+		return this.received;
+	}
 }

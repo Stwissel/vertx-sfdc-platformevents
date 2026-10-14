@@ -23,11 +23,12 @@ package net.wissel.salesforce.vertx;
 
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 
 public class Runner {
 
@@ -39,15 +40,11 @@ public class Runner {
 		final Consumer<Vertx> runner = vertx -> {
 			try {
 				final DeploymentOptions depOpt = new DeploymentOptions();
-				vertx.deployVerticle(verticleID, depOpt, res -> {
-					if (res.succeeded()) {
-						Runner.logger.info(verticleID + " deployed as " + res.result());
-					} else {
-						Runner.logger.error("Deployment failed for " + verticleID);
-					}
-				});
+				vertx.deployVerticle(verticleID, depOpt)
+						.onSuccess(id -> Runner.logger.info("{} deployed as {}", verticleID, id))
+						.onFailure(t -> Runner.logger.error("Deployment failed for {}", verticleID, t));
 			} catch (final Throwable t) {
-				Runner.logger.error(t);
+				Runner.logger.error("Could not run verticle", t);
 			}
 		};
 

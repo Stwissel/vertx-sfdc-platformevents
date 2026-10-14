@@ -41,11 +41,11 @@ public abstract class AbstractSFDCConsumer extends AbstractSFDCVerticle {
 
 	@Override
 	public SFDCVerticle startListening() {
-		this.logger.info("Start listening:" + this.getClass().getName());
+		this.logger.info("Start listening: {}", this.getClass().getName());
 		// Listen on the event bus
 		final EventBus eb = this.getVertx().eventBus();
 		this.consumer = eb.consumer(this.getConsumerConfig().getEventBusAddress());
-		this.logger.info(this.getClass().getName() + " listening on " + this.consumer.address());
+		this.logger.info("{} listening on {}", this.getClass().getName(), this.consumer.address());
 		this.consumer.handler(this::processIncoming);
 		// Done
 		this.listening = true;
@@ -53,17 +53,12 @@ public abstract class AbstractSFDCConsumer extends AbstractSFDCVerticle {
 	}
 
 	@Override
-	public SFDCVerticle stopListening(final Future<Void> stopListenFuture) {
-		this.logger.info("Stop listening:" + this.getClass().getName());
+	public Future<Void> stopListening() {
+		this.logger.info("Stop listening: {}", this.getClass().getName());
 		this.listening = false;
-		if (this.consumer == null) {
-			stopListenFuture.complete();
-		} else {
-			this.consumer.unregister(res -> {
-				stopListenFuture.complete();
-			});
-		}
-		return this;
+		return (this.consumer == null)
+				? Future.succeededFuture()
+				: this.consumer.unregister();
 	}
 
 	protected ConsumerConfig getConsumerConfig() {

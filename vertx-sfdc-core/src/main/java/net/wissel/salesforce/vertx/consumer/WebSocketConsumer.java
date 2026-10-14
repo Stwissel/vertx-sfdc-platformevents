@@ -25,7 +25,7 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import net.wissel.salesforce.vertx.SFDCRouterExtension;
@@ -42,24 +42,25 @@ public class WebSocketConsumer extends AbstractSFDCConsumer implements SFDCRoute
 		final SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
 		final SockJSHandler sockJSHandler = SockJSHandler.create(this.getVertx(), options);
 
-		final BridgeOptions bo = new BridgeOptions()
+		final SockJSBridgeOptions bo = new SockJSBridgeOptions()
 				.addOutboundPermitted(new PermittedOptions().setAddress(this.getWebSocketName()));
 
-		sockJSHandler.bridge(bo, event -> {
-			this.logger.info("A websocket event occurred: " + event.type() + "; " + event.getRawMessage());
+		final Router bridgeRouter = sockJSHandler.bridge(bo, event -> {
+			this.logger.debug("A websocket event occurred: {}; {}", event.type(), event.getRawMessage());
 			event.complete(true);
 		});
 
+		// The configured URL must be a wildcard mount, e.g. /datachange/*
 		final String someURL = this.getConsumerConfig().getUrl();
-		this.logger.info("Router listening on " + someURL + " for " + this.getWebSocketName());
-		router.route(someURL).handler(sockJSHandler);
+		this.logger.info("Router listening on {} for {}", someURL, this.getWebSocketName());
+		router.route(someURL).subRouter(bridgeRouter);
 		return this;
 	}
 
 	@Override
 	protected void processIncoming(final Message<JsonObject> incomingData) {
 		final JsonObject body = incomingData.body();
-		this.logger.info("Published to eventbus:" + body.toString());
+		this.logger.debug("Published to eventbus: {}", body);
 		this.getVertx().eventBus().publish(this.getWebSocketName(), body);
 	}
 

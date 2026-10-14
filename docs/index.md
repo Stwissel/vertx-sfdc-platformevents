@@ -1,8 +1,7 @@
 # Salesforce vert.x integration
 
-[ ![Codeship Status for Stwissel/vertx-sfdc-platformevents](https://app.codeship.com/projects/65890500-b1cd-0135-81e1-7645507f84f6/status?branch=master)](https://app.codeship.com/projects/257955)
-
 Collection of verticles that enable interaction with the Salesforce API.<br />
+Current version: `0.5.0` - requires Java 25+ and is built on Vert.x 5.<br />
 Artifacts on [Maven Central](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22net.wissel.salesforce%22)
 
 Eclipse [vert.x](http://vertx.io) is a lightweight Java framework for micro services architectures.

@@ -46,20 +46,20 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 	private boolean loginFailed = false;
 
 	/**
-	 * @see net.wissel.salesforce.vertx.AbstractSFDCVerticle#start(io.vertx.core.Future)
+	 * @see net.wissel.salesforce.vertx.AbstractSFDCVerticle#start()
 	 */
 	@Override
-	public void start(final Future<Void> startFuture) throws Exception {
+	public Future<?> start() throws Exception {
 		// Authentication needs to listen first
 		this.startListening();
-		super.start(startFuture);
+		return super.start();
 	}
 
 	protected AuthInfo getCachedAuthInfo() {
 		return this.cachedAuthInfo;
 	}
 
-	protected abstract void login(Future<AuthInfo> futureAuthinfo);
+	protected abstract Future<AuthInfo> login();
 
 	protected void setCachedAuthInfo(final AuthInfo cacheInfo) {
 		this.cachedAuthInfo = cacheInfo;
@@ -90,44 +90,36 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 					// No second try
 					handler.fail(500, "Previous login attempt failed, login disabled " + this.getClass().getName());
 				} else {
-					final Future<AuthInfo> futureAuthinfo = Future.future();
-					futureAuthinfo.setHandler(authHandler -> {
+					this.login().onComplete(authHandler -> {
 						if (authHandler.succeeded()) {
 							handler.reply(authHandler.result());
 						} else {
 							this.loginFailed = true;
-							this.logger.error(authHandler.cause());
+							this.logger.error("Login failed", authHandler.cause());
 							handler.fail(500, authHandler.cause().getMessage());
 						}
 					});
-					this.login(futureAuthinfo);
 				}
 			}
 		});
-		this.logger.info("Start listening:" + this.getClass().getName());
+		this.logger.info("Start listening: {}", this.getClass().getName());
 		this.listening = true;
 		return this;
 	}
 	/**
-	 * @see net.wissel.salesforce.vertx.AbstractSFDCVerticle#stopListening(io.vertx.core.Future)
+	 * @see net.wissel.salesforce.vertx.AbstractSFDCVerticle#stopListening()
 	 */
 	@Override
-	public SFDCVerticle stopListening(final Future<Void> stopListenFuture) {
-		this.logger.info("Stop listening:" + this.getClass().getName());
-		if (this.consumer != null) {
-			this.consumer.unregister(handler -> {
-				this.consumer = null;
-				this.listening = false;
-				this.loginFailed = false;
-				stopListenFuture.complete();
-			});
-		} else {
+	public Future<Void> stopListening() {
+		this.logger.info("Stop listening: {}", this.getClass().getName());
+		final Future<Void> unregister = (this.consumer != null)
+				? this.consumer.unregister()
+				: Future.succeededFuture();
+		return unregister.andThen(handler -> {
 			this.consumer = null;
 			this.listening = false;
 			this.loginFailed = false;
-			stopListenFuture.complete();
-		}
-		return this;
+		});
 	}
 
 	/**
