@@ -45,6 +45,9 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 	// We try only once
 	private boolean loginFailed = false;
 
+	// The login currently in flight, shared by every waiting request
+	private Future<AuthInfo> pendingLogin = null;
+
 	/**
 	 * @see net.wissel.salesforce.vertx.AbstractSFDCVerticle#start()
 	 */
@@ -82,6 +85,9 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 			if (headers.contains(Constants.AUTH_RESET)) {
 				this.setCachedAuthInfo(null);
 				this.loginFailed = false;
+				// A reset asks for a fresh login, so an in-flight one started
+				// before the reset must not be handed out any more
+				this.pendingLogin = null;
 			}
 			if (this.getCachedAuthInfo() != null) {
 				handler.reply(this.getCachedAuthInfo());
@@ -90,7 +96,21 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 					// No second try
 					handler.fail(500, "Previous login attempt failed, login disabled " + this.getClass().getName());
 				} else {
-					this.login().onComplete(authHandler -> {
+					// One login serves every request that arrives while it is
+					// in flight. Starting one per caller means one SOAP session
+					// per caller with SoapApi. A verticle runs on a single
+					// event loop thread, so this needs no synchronization
+					Future<AuthInfo> inFlight = this.pendingLogin;
+					if (inFlight == null) {
+						inFlight = this.login();
+						// Publish the field before registering the reset
+						// handler: a login that is already complete runs that
+						// handler at once, and only the local reference is
+						// guaranteed to still point at the future afterwards
+						this.pendingLogin = inFlight;
+						inFlight.onComplete(result -> this.pendingLogin = null);
+					}
+					inFlight.onComplete(authHandler -> {
 						if (authHandler.succeeded()) {
 							handler.reply(authHandler.result());
 						} else {
@@ -119,6 +139,7 @@ public abstract class AbstractAuth extends AbstractSFDCVerticle implements SFDCV
 			this.consumer = null;
 			this.listening = false;
 			this.loginFailed = false;
+			this.pendingLogin = null;
 		});
 	}
 

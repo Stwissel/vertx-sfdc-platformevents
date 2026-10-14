@@ -199,8 +199,13 @@ public class RestConsumer extends AbstractSFDCConsumer {
 		// The configured url is absolute - postAbs derives host, port
 		// and TLS use from the URL scheme
 		final HttpRequest<Buffer> request = client.postAbs(destination)
-				.putHeader(Constants.AUTH_HEADER, this.authInfo.sessionToken)
 				.putHeader(Constants.CONTENT_HEADER, this.getContentType());
+		// An unauthenticated destination has no AuthInfo, and for one that
+		// needs it the reply may not have arrived yet - either way the header
+		// is simply omitted rather than dereferencing a null AuthInfo
+		if (this.authInfo != null) {
+			request.putHeader(Constants.AUTH_HEADER, this.authInfo.sessionToken);
+		}
 		return request;
 	}
 
@@ -209,6 +214,14 @@ public class RestConsumer extends AbstractSFDCConsumer {
 	}
 
 	private void postToDestination(final PostRetry payload) {
+		// startListening asks for auth without waiting for the reply, so a
+		// message can arrive first. Re-enqueue it rather than posting without
+		// the credentials the destination requires
+		if ((this.authInfo == null) && (this.getConsumerConfig().getAuthName() != null)) {
+			this.getAuthInfo().onFailure(t -> this.logger.error("Could not retrieve auth info", t));
+			this.processError(payload);
+			return;
+		}
 		this.initWebClient();
 		final HttpRequest<Buffer> request = this.initWebPostRequest(this.getConsumerConfig().getUrl());
 		// Failures re-enqueue asynchronously, which is what lets the

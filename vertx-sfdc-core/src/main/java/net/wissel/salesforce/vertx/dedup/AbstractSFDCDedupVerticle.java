@@ -71,13 +71,31 @@ public abstract class AbstractSFDCDedupVerticle extends AbstractSFDCVerticle {
 	}
 
 	/**
+	 * Sends the message on to each of its final destinations
+	 *
+	 * @param messageBody      the message to forward
+	 * @param finalDestination the addresses it is destined for
+	 * @param dOpts            delivery options carrying the original headers
+	 */
+	private void forwardToDestinations(final JsonObject messageBody, final List<String> finalDestination,
+			final DeliveryOptions dOpts) {
+		final EventBus eb = this.getVertx().eventBus();
+		finalDestination.forEach(d -> eb.send(d, messageBody, dOpts));
+	}
+
+	/**
 	 ** Actual routine that check for "duplication". Could be anything, depending on use case.
 	 * The returned future fails when a duplicate is found and succeeds when it is not.
 	 * This allows for async execution
 	 *
+	 * Implementations must fail with a {@link DuplicateMessageException} for a
+	 * confirmed duplicate. Any other failure is read as the dedup store being
+	 * unavailable, and the message is forwarded rather than dropped
+	 *
 	 * @param messageBody
 	 *            the incoming message body to be checked
-	 * @return Future that fails if it is a duplicate, succeeds if not
+	 * @return Future failing with DuplicateMessageException if it is a
+	 *         duplicate, succeeding if not
 	 */
 	protected abstract Future<Void> checkForDuplicate(final JsonObject messageBody);
 
@@ -108,14 +126,19 @@ public abstract class AbstractSFDCDedupVerticle extends AbstractSFDCVerticle {
 			dOpts.setHeaders(headers);
 			// The duplicate check happens here!
 			this.checkForDuplicate(j)
-					.onSuccess(v -> {
-						// Forwarding it to where it should go
-						final EventBus eb = this.getVertx().eventBus();
-						finalDestination.forEach(d -> {
-							eb.send(d, j, dOpts);
-						});
-					})
-					.onFailure(t -> this.logger.info("Dropped duplicate Object: {}", j));
+					.onSuccess(v -> this.forwardToDestinations(j, finalDestination, dOpts))
+					.onFailure(t -> {
+						if (t instanceof DuplicateMessageException) {
+							this.logger.info("Dropped duplicate Object: {}", j);
+						} else {
+							// The check itself failed, so whether this is a
+							// duplicate is unknown. Forwarding keeps the event:
+							// a possible duplicate downstream is recoverable,
+							// an event dropped on a store outage is not
+							this.logger.error("Duplicate check failed, forwarding anyway", t);
+							this.forwardToDestinations(j, finalDestination, dOpts);
+						}
+					});
 		} else {
 			this.logger.error("Incoming message without final destination: {}", incomingData);
 		}

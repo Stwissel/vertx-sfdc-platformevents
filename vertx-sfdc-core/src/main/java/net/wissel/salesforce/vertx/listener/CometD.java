@@ -72,7 +72,7 @@ public class CometD extends AbstractSFDCVerticle {
                 // This is where we talk to the API
                 this.step2ActionHandshake();
             } else {
-                this.logger.error("Could not retrieve auth session", handler.cause());
+                this.terminalFailure("Could not retrieve auth session", handler.cause());
             }
         });
         this.listening = true;
@@ -105,6 +105,24 @@ public class CometD extends AbstractSFDCVerticle {
             // We don't want to miss
             this.getVertx().setTimer(1000, en -> this.completeWhenDrained(stopPromise));
         }
+    }
+
+    /**
+     * Reports a failure that ends the startup chain and marks the listener
+     * as stopped. The long poll handlers already do this; the startup paths
+     * did not, so a later stopListening() waited forever on a poll that was
+     * never started
+     *
+     * @param message what failed
+     * @param cause   underlying error, may be null
+     */
+    private void terminalFailure(final String message, final Throwable cause) {
+        if (cause == null) {
+            this.logger.error(message);
+        } else {
+            this.logger.error(message, cause);
+        }
+        this.shutdownCompleted = true;
     }
 
     protected void captureCookies(final List<String> newCookies) {
@@ -301,7 +319,7 @@ public class CometD extends AbstractSFDCVerticle {
 
         request.sendJson(body)
                 .onSuccess(this::step2ResultHandshake)
-                .onFailure(t -> this.logger.error("Handshake request failed", t));
+                .onFailure(t -> this.terminalFailure("Handshake request failed", t));
     }
 
     private void step2ResultHandshake(final HttpResponse<Buffer> postReturn) {
@@ -320,13 +338,13 @@ public class CometD extends AbstractSFDCVerticle {
         if (handshakeResult.getBoolean("successful", false)) {
             final String clientIdCandidate = handshakeResult.getString("clientId");
             if (clientIdCandidate == null) {
-                this.logger.error("Handshake didn't provide clientId");
+                this.terminalFailure("Handshake didn't provide clientId", null);
             } else {
                 this.clientId = clientIdCandidate;
                 this.step3ActionAdvice(handshakeResult);
             }
         } else {
-            this.logger.error("Handshake was unsuccessful");
+            this.terminalFailure("Handshake was unsuccessful", null);
         }
     }
 
@@ -340,7 +358,7 @@ public class CometD extends AbstractSFDCVerticle {
         final HttpRequest<Buffer> request = this.initWebPostRequest(Constants.URL_CONNECT);
         request.sendJson(body)
                 .onSuccess(this::step3ResultAdvice)
-                .onFailure(t -> this.logger.error("Advice request failed", t));
+                .onFailure(t -> this.terminalFailure("Advice request failed", t));
     }
 
     private void step3ResultAdvice(final HttpResponse<Buffer> postReturn) {
@@ -357,7 +375,7 @@ public class CometD extends AbstractSFDCVerticle {
             // TODO Extract the advice, especially timeout
             this.step4ActionSubscribe();
         } else {
-            this.logger.error("Advice negotiation failed (Step 3)");
+            this.terminalFailure("Advice negotiation failed (Step 3)", null);
         }
     }
 
@@ -372,7 +390,7 @@ public class CometD extends AbstractSFDCVerticle {
 
         request.sendJson(body)
                 .onSuccess(this::step4ResultSubscribe)
-                .onFailure(t -> this.logger.error("Subscribe request failed", t));
+                .onFailure(t -> this.terminalFailure("Subscribe request failed", t));
     }
 
     private void step4ResultSubscribe(final HttpResponse<Buffer> postReturn) {

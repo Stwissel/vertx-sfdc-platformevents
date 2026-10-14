@@ -22,6 +22,7 @@
 package net.wissel.salesforce.vertx.dedup;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -33,7 +34,9 @@ import org.junit.jupiter.api.Test;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import io.vertx.redis.client.RedisOptions;
 import io.vertx.redis.client.Response;
+import net.wissel.salesforce.vertx.config.DedupConfig;
 
 /**
  * Dedup logic with an in-memory stand-in for the Redis SET NX call -
@@ -59,6 +62,39 @@ public class RedisDedupTest {
 			}
 			return Future.succeededFuture(null);
 		}
+	}
+
+	/**
+	 * Supplies a config without deploying the verticle
+	 */
+	private static class ConfiguredRedisDedup extends RedisDedup {
+		private final DedupConfig dedupConfig;
+
+		ConfiguredRedisDedup(final DedupConfig dedupConfig) {
+			this.dedupConfig = dedupConfig;
+		}
+
+		@Override
+		protected DedupConfig getDedupConfig() {
+			return this.dedupConfig;
+		}
+	}
+
+	@Test
+	public void passwordTravelsOutsideTheConnectionUri() {
+		final String password = "p@ss#word";
+		final DedupConfig config = new DedupConfig();
+		config.setServerURL("redis.example.com");
+		config.setPort(6380);
+		config.setSfdcPassword(password);
+
+		final RedisOptions options = new ConfiguredRedisDedup(config).buildRedisOptions();
+
+		// Concatenated into the URI, the "@" and "#" above would change how
+		// the endpoint parses and break an otherwise valid password
+		assertEquals("redis://redis.example.com:6380", options.getEndpoint());
+		assertFalse(options.getEndpoint().contains(password), "Password leaked into the endpoint");
+		assertEquals(password, options.getPassword());
 	}
 
 	@Test

@@ -50,7 +50,7 @@ public class MemoryDedup extends AbstractSFDCDedupVerticle {
 		final String candidate = messageBody.encode();
 		if (this.memoryQueue.contains(candidate)) {
 			// We have a duplicate and fail the future
-			return Future.failedFuture("Duplicate");
+			return Future.failedFuture(new DuplicateMessageException(candidate));
 		}
 		this.memoryQueue.offer(candidate);
 		// Limit the size of the queue
